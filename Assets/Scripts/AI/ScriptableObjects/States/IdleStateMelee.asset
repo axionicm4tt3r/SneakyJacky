@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 374c347b9f38c9e4a944b32ae2293e61, type: 3}
+  m_Name: IdleStateMelee
+  m_EditorClassIdentifier: 
+  actions:
+  - {fileID: 11400000, guid: 9fd417383b5fb2c4fbb1b93595d8ac3e, type: 2}
+  transitions:
+  - decision: {fileID: 11400000, guid: eb4c69e2f4c86da4095d6581a23e1ea4, type: 2}
+    trueState: {fileID: 11400000, guid: 4341a1268299ab04f84dd58458f8824f, type: 2}
+    falseState: {fileID: 11400000, guid: 42d6f8e6612a7ee4391abfefc2fe68dd, type: 2}
+  - decision: {fileID: 11400000, guid: 4b05734e87ee5154893dfc516d032157, type: 2}
+    trueState: {fileID: 11400000, guid: 4341a1268299ab04f84dd58458f8824f, type: 2}
+    falseState: {fileID: 11400000, guid: 42d6f8e6612a7ee4391abfefc2fe68dd, type: 2}
+  - decision: {fileID: 11400000, guid: 70941d951d792964b89a5e36ed71a840, type: 2}
+    trueState: {fileID: 11400000, guid: 4341a1268299ab04f84dd58458f8824f, type: 2}
+    falseState: {fileID: 11400000, guid: 42d6f8e6612a7ee4391abfefc2fe68dd, type: 2}
+  sceneGizmoColor: {r: 0.10517242, g: 0.89705884, b: 0, a: 1}

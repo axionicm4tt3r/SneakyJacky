@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 374c347b9f38c9e4a944b32ae2293e61, type: 3}
+  m_Name: ChaseStateMelee
+  m_EditorClassIdentifier: 
+  actions:
+  - {fileID: 11400000, guid: af617648eedd2e6489f11b0ca17a34b5, type: 2}
+  - {fileID: 11400000, guid: 937b6618ca5720f4f81a4e6c684d1c85, type: 2}
+  transitions:
+  - decision: {fileID: 11400000, guid: 4b05734e87ee5154893dfc516d032157, type: 2}
+    trueState: {fileID: 11400000, guid: 42d6f8e6612a7ee4391abfefc2fe68dd, type: 2}
+    falseState: {fileID: 11400000, guid: ee88524fe95851f448e4307573a64186, type: 2}
+  - decision: {fileID: 11400000, guid: 70941d951d792964b89a5e36ed71a840, type: 2}
+    trueState: {fileID: 11400000, guid: 42d6f8e6612a7ee4391abfefc2fe68dd, type: 2}
+    falseState: {fileID: 11400000, guid: ee88524fe95851f448e4307573a64186, type: 2}
+  sceneGizmoColor: {r: 1, g: 0, b: 0, a: 1}
