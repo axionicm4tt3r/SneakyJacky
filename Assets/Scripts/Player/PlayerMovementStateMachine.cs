@@ -9,6 +9,7 @@ public class PlayerMovementStateMachine : SuperStateMachine
 	public const float CrouchSpeed = 5.0f;
 	public const float CrouchAcceleration = CrouchSpeed * 9.0f;
 	public const float CrouchDeceleration = CrouchSpeed * 8.0f;
+	public const float WalkSpeedFactor = 0.5f;
 
 	public const float JumpHeight = 1.3f;
 	public const float Gravity = 25.0f;
@@ -322,7 +323,8 @@ public class PlayerMovementStateMachine : SuperStateMachine
 			return;
 		}
 
-		moveDirection = Vector3.MoveTowards(moveDirection, LocalMovement() * RunSpeed, RunAcceleration * controller.deltaTime);
+		var targetSpeed = playerInputManager.Current.WalkInput ? RunSpeed * WalkSpeedFactor : RunSpeed;
+		moveDirection = Vector3.MoveTowards(moveDirection, LocalMovement() * targetSpeed, RunAcceleration * controller.deltaTime);
 	}
 	#endregion
 
@@ -359,7 +361,8 @@ public class PlayerMovementStateMachine : SuperStateMachine
 			return;
 		}
 
-		moveDirection = Vector3.MoveTowards(moveDirection, LocalMovement() * CrouchSpeed, CrouchAcceleration * controller.deltaTime);
+		var targetSpeed = playerInputManager.Current.WalkInput ? CrouchSpeed * WalkSpeedFactor : CrouchSpeed;
+		moveDirection = Vector3.MoveTowards(moveDirection, LocalMovement() * targetSpeed, CrouchAcceleration * controller.deltaTime);
 	}
 	#endregion
 
