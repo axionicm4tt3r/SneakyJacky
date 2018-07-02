@@ -19,17 +19,14 @@ public class PlayerHitbox : MonoBehaviour
 		{
 			switch((PlayerAttackState)playerController.CurrentState)
 			{
-				case PlayerAttackState.ChargeAttacking:
-					playerAttackManager.ChargeAttack(attackableComponent);
-					break;
-				case PlayerAttackState.JumpKicking:
-					playerAttackManager.JumpKick(attackableComponent);
-					break;
-				case PlayerAttackState.SlideKicking:
-					playerAttackManager.SlideKick(attackableComponent);
-					break;
+				case PlayerAttackState.BasicAttacking:
+					//playerAttackManager.BasicAttack(attackableComponent);
+					return;
+				case PlayerAttackState.Grappling:
+					//playerAttackManager.JumpKick(attackableComponent);
+					return;
 				default:
-					break;
+					return;
 			}
 		}
 	}

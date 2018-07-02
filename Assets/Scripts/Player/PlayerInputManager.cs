@@ -13,7 +13,7 @@ public class PlayerInputManager : MonoBehaviour
 		Vector2 mouseInput = new Vector2(Input.GetAxisRaw(InputCodes.MouseX), Input.GetAxisRaw(InputCodes.MouseY));
 
 		bool walkInput = Input.GetButton(InputCodes.Walk);
-		bool jumpInput = Input.GetButtonDown(InputCodes.Jump);
+		bool jumpInput = Input.GetButton(InputCodes.Jump);
 		bool crouchInput = Input.GetButton(InputCodes.Crouch);
 		bool primaryFireInput = Input.GetButton(InputCodes.PrimaryFire);
 		bool secondaryFireInput = Input.GetButton(InputCodes.SecondaryFire);

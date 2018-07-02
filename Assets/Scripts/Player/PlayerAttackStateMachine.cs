@@ -3,8 +3,6 @@ using UnityEngine;
 
 public class PlayerAttackStateMachine : SuperStateMachine
 {
-	public const float JUMP_KICK_ALLOWANCE_TIME = 0.2f;
-
 	private PlayerStatus playerStatus;
 	private PlayerAnimationManager playerAnimationManager;
 	private PlayerAttackManager playerAttackManager;
@@ -17,32 +15,25 @@ public class PlayerAttackStateMachine : SuperStateMachine
 	public float ChargeAttackLungeMinimumChargePercentage = 0.6f;
 
 	//Attack Motion Times - Convert these to frames?
-	public float BlockMotionTime = 0.5f;
 	public float BasicAttackMotionTime = 0.3f;
-	public float AttackFullyChargedMotionTime = 2.5f;
-	public float ChargeAttackMotionTime = 0.6f;
-	public float JumpKickAttackMotionTime = 15f;
-	public float SlideKickAttackMotionTime = 0.6f;
 
 	//Attack Cooldown Times
-	public float BlockCooldown = 0.3f;
 	public float BasicAttackCooldown = 0.1f;
-	public float JumpKickAttackCooldown = 0.5f;
-	public float SlideKickAttackCooldown = 0.5f;
-
-	private float attackChargePercentage = 0f;
-	private bool blockInputHandled = false;
 
 	public Enum CurrentState { get { return currentState; } private set { ChangeState(); currentState = value; } }
 
 	public float TimeSinceEnteringCurrentState { get { return Time.time - timeEnteredState; } }
 
 	#region PropertyGetters
-
-	public float DamageMultiplier { get { return attackChargePercentage * MaxChargeAttackDamageMultiplier; } }
-
-	public float AttackChargePercentage { get { return attackChargePercentage; } }
-
+	public bool CanAttack
+	{
+		get
+		{
+			return !((PlayerMovementState)playerMovementStateMachine.CurrentState == PlayerMovementState.Sliding ||
+					(PlayerMovementState)playerMovementStateMachine.CurrentState == PlayerMovementState.Jumping ||
+					(PlayerMovementState)playerMovementStateMachine.CurrentState == PlayerMovementState.Falling);
+		}
+	}
 	#endregion
 
 	private void ChangeState()
@@ -69,9 +60,6 @@ public class PlayerAttackStateMachine : SuperStateMachine
 
 	protected override void LateGlobalSuperUpdate()
 	{
-		if (Input.GetButtonUp(InputCodes.SecondaryFire))
-			blockInputHandled = false;
-
 		//Debug.Log($"Time in state: {TimeSinceEnteringCurrentState}");
 	}
 
@@ -80,8 +68,8 @@ public class PlayerAttackStateMachine : SuperStateMachine
 	#region Idle
 	void Idle_EnterState()
 	{
-		playerAttackManager.ClearEnemiesHit();
 		playerAnimationManager.ResetAnimatorParameters();
+		playerAttackManager.ClearEnemiesHit();
 	}
 
 	void Idle_SuperUpdate()
@@ -91,13 +79,13 @@ public class PlayerAttackStateMachine : SuperStateMachine
 
 		if (playerInputManager.Current.PrimaryFireInput)
 		{
-			Attack();
+			PrimaryAttack();
 			return;
 		}
 
-		if (playerInputManager.Current.SecondaryFireInput && !blockInputHandled)
+		if (playerInputManager.Current.SecondaryFireInput)
 		{
-			CurrentState = PlayerAttackState.Blocking;
+			Grapple();
 			return;
 		}
 
@@ -107,24 +95,6 @@ public class PlayerAttackStateMachine : SuperStateMachine
 			return;
 		}
 	}
-	#endregion
-
-	#region Blocking
-	void Blocking_EnterState()
-	{
-		blockInputHandled = true;
-		playerAnimationManager.ExecuteBlock();
-	}
-
-	void Blocking_SuperUpdate()
-	{
-		if (TimeSinceEnteringCurrentState >= BlockMotionTime)
-		{
-			CurrentState = PlayerAttackState.Idle;
-			return;
-		}
-	}
-
 	#endregion
 
 	#region BasicAttacking
@@ -144,98 +114,30 @@ public class PlayerAttackStateMachine : SuperStateMachine
 	}
 	#endregion
 
-	#region ChargingAttack
-	void ChargingAttack_EnterState()
+	#region Grappling
+	void Grappling_EnterState()
 	{
-		playerAnimationManager.ChargeUpAttack();
-		attackChargePercentage = 0f;
+		playerAnimationManager.ExecuteGrapple();
+		playerAttackManager.Grapple(); //Grab the target we wish to grapple.
 	}
 
-	void ChargingAttack_SuperUpdate()
+	void Grappling_SuperUpdate()
 	{
-		attackChargePercentage = Mathf.Min(TimeSinceEnteringCurrentState / AttackFullyChargedMotionTime, 1f);
-		playerAnimationManager.ChangeAnimationSpeed(Mathf.Lerp(0.5f, 1f, attackChargePercentage));
+		//if (TimeSinceEnteringCurrentState >= BasicAttackMotionTime)
+		//{
+		CurrentState = PlayerAttackState.Idle;
+		return;
+		//}
 
-		if (!playerInputManager.Current.PrimaryFireInput && attackChargePercentage < ChargeAttackMinimumChargePercentage)
-		{
-			CurrentState = PlayerAttackState.BasicAttacking;
-			return;
-		}
-
-		if (attackChargePercentage >= ChargeAttackMinimumChargePercentage && !playerInputManager.Current.PrimaryFireInput)
-		{
-			CurrentState = PlayerAttackState.ChargeAttacking;
-			return;
-		}
-
-		//Debug.Log($"Attack Charge Percentage: {attackChargePercentage}");
-	}
-
-	void ChargingAttack_ExitState()
-	{
-		playerAnimationManager.ResetAnimationSpeed();
-	}
-	#endregion
-
-	#region ChargeAttacking
-	void ChargeAttacking_EnterState()
-	{
-		if (attackChargePercentage >= ChargeAttackLungeMinimumChargePercentage)
-		{
-			if (playerMovementStateMachine.InCrouchingState)
-				playerMovementStateMachine.CrouchLunge();
-			else
-				playerMovementStateMachine.Lunge();
-		}
-
-		playerAnimationManager.ExecuteChargeAttack();
-	}
-
-	void ChargeAttacking_SuperUpdate()
-	{
-		if (TimeSinceEnteringCurrentState >= ChargeAttackMotionTime && (PlayerMovementState)playerMovementStateMachine.CurrentState != PlayerMovementState.Lunging)
-		{
-			CurrentState = PlayerAttackState.Idle;
-			return;
-		}
-	}
-	#endregion
-
-	#region JumpKicking
-	void JumpKicking_EnterState()
-	{
-		playerAnimationManager.ExecuteJumpKick();
-	}
-
-	void JumpKicking_SuperUpdate()
-	{
-		if (TimeSinceEnteringCurrentState >= JumpKickAttackMotionTime || (PlayerMovementState)playerMovementStateMachine.CurrentState != PlayerMovementState.Jumping)
-		{
-			CurrentState = PlayerAttackState.Idle;
-			return;
-		}
-	}
-	#endregion
-
-	#region SlideKicking
-	void SlideKicking_EnterState()
-	{
-		playerAnimationManager.ExecuteSlideKick();
-	}
-
-	void SlideKicking_SuperUpdate()
-	{
-		if (TimeSinceEnteringCurrentState >= SlideKickAttackMotionTime || (PlayerMovementState)playerMovementStateMachine.CurrentState != PlayerMovementState.Sliding)
-		{
-			CurrentState = PlayerAttackState.Idle;
-			return;
-		}
+		//Determine which type of grapple we need to apply to the player from the AttackManager.
+		//See which move we should perform. Let the enemy have a chance to counter it if they know what we're doing.
+		//Perform the attack
 	}
 	#endregion
 
 	#endregion
 
-	internal void Attack()
+	internal void PrimaryAttack()
 	{
 		if (playerInteractionManager.HoldingObject)
 		{
@@ -244,21 +146,27 @@ public class PlayerAttackStateMachine : SuperStateMachine
 		}
 		else
 		{
-			if ((PlayerMovementState)playerMovementStateMachine.CurrentState == PlayerMovementState.Sliding)
+			if (CanAttack)
 			{
-				CurrentState = PlayerAttackState.SlideKicking;
+				CurrentState = PlayerAttackState.BasicAttacking;
 				return;
 			}
-			else if ((PlayerMovementState)playerMovementStateMachine.CurrentState == PlayerMovementState.Jumping
-				&& playerMovementStateMachine.TimeSinceEnteringCurrentState < JUMP_KICK_ALLOWANCE_TIME
-				&& playerMovementStateMachine.LocalMovementIsForwardFacing)
+		}
+	}
+
+	internal void Grapple()
+	{
+		if (playerInteractionManager.HoldingObject)
+		{
+			playerInteractionManager.Drop();
+			//Animate player drop?
+		}
+		else
+		{
+			if (CanAttack)
 			{
-				CurrentState = PlayerAttackState.JumpKicking;
-				return;
-			}
-			else
-			{
-				CurrentState = PlayerAttackState.ChargingAttack;
+
+				CurrentState = PlayerAttackState.Grappling;
 				return;
 			}
 		}
@@ -270,8 +178,5 @@ public enum PlayerAttackState
 	Idle,
 	Blocking,
 	BasicAttacking,
-	ChargingAttack,
-	ChargeAttacking,
-	JumpKicking,
-	SlideKicking
+	Grappling
 }

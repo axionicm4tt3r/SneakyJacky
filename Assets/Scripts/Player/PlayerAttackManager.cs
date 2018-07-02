@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class PlayerAttackManager : MonoBehaviour
@@ -7,18 +8,6 @@ public class PlayerAttackManager : MonoBehaviour
 	#region AttackProperties
 	public static float BasicAttackDamage = 5f;
 	public static float BasicAttackStaggerTime = 0.2f;
-
-	public static float ChargeAttackDamage = 5f;
-	public static float ChargeAttackKnockbackVelocity = 12f;
-	public static float ChargeAttackKnockbackTime = 0.2f;
-
-	public static float JumpKickDamage = 18f;
-	public static float JumpKickKnockbackVelocity = 25f;
-	public static float JumpKickKnockbackTime = 0.2f;
-
-	public static float SlideKickDamage = 12f;
-	public static float SlideKickKnockbackVelocity = 18f;
-	public static float SlideKickKnockbackTime = 0.2f;
 	#endregion
 
 	PlayerAttackStateMachine playerAttackStateMachine;
@@ -42,7 +31,7 @@ public class PlayerAttackManager : MonoBehaviour
 
 		foreach (IAttackable attackableComponent in results)
 		{
-			var damage = BasicAttackDamage + BasicAttackDamage * playerAttackStateMachine.DamageMultiplier;
+			var damage = BasicAttackDamage + BasicAttackDamage;
 			attackableComponent.ReceiveStaggerAttack(damage, transform.forward, BasicAttackStaggerTime);
 		}
 
@@ -52,42 +41,13 @@ public class PlayerAttackManager : MonoBehaviour
 			playerSoundManager.PlayBasicAttackMissSound();
 	}
 
-	public void ChargeAttack(IAttackable attackableComponent)
+	public void Grapple()
 	{
-		var damage = ChargeAttackDamage + ChargeAttackDamage * playerAttackStateMachine.DamageMultiplier;
+		bool hitEnemy = false;
+		List<IAttackable> results = CheckInstantFrameHitboxForEnemies(out hitEnemy);
 
-		if (!enemiesHit.Contains(attackableComponent))
-		{
-			enemiesHit.Add(attackableComponent);
-			attackableComponent.ReceiveKnockbackAttack(damage, transform.forward, ChargeAttackKnockbackVelocity, ChargeAttackKnockbackTime);
-			playerSoundManager.PlayChargeAttackHitSound();
-		}
-		else
-			attackableComponent.ReceiveKnockbackAttack(0f, transform.forward, ChargeAttackKnockbackVelocity, ChargeAttackKnockbackTime);
-	}
-
-	public void JumpKick(IAttackable attackableComponent)
-	{
-		if (!enemiesHit.Contains(attackableComponent))
-		{
-			enemiesHit.Add(attackableComponent);
-			attackableComponent.ReceiveKnockbackAttack(JumpKickDamage, transform.forward, JumpKickKnockbackVelocity, JumpKickKnockbackTime);
-			playerSoundManager.PlayJumpAttackHitSound();
-		}
-		else
-			attackableComponent.ReceiveKnockbackAttack(0f, transform.forward, JumpKickKnockbackVelocity, JumpKickKnockbackTime);
-	}
-
-	public void SlideKick(IAttackable attackableComponent)
-	{
-		if (!enemiesHit.Contains(attackableComponent))
-		{
-			enemiesHit.Add(attackableComponent);
-			attackableComponent.ReceiveKnockbackAttack(SlideKickDamage, transform.forward, SlideKickKnockbackVelocity, SlideKickKnockbackTime);
-			playerSoundManager.PlayJumpAttackHitSound();
-		}
-		else
-			attackableComponent.ReceiveKnockbackAttack(0f, transform.forward, SlideKickKnockbackVelocity, SlideKickKnockbackTime);
+		var damage = BasicAttackDamage + BasicAttackDamage;
+		results.FirstOrDefault()?.ReceiveStaggerAttack(damage, transform.forward, BasicAttackStaggerTime);
 	}
 
 	public List<IAttackable> CheckInstantFrameHitboxForEnemies(out bool hasEnemy)

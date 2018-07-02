@@ -122,20 +122,11 @@ public class PlayerCamera : MonoBehaviour
 	private bool PlayerShouldHeadbob()
 	{
 		return playerMovementStateMachine.MaintainingGround() &&
-			!MoveStateDisallowsHeadbob() &&
-			!AttackStateDisallowsHeadbob();
+			!MoveStateDisallowsHeadbob();
 	}
 
 	private bool MoveStateDisallowsHeadbob()
 	{
-		return (moveState == PlayerMovementState.Sliding) ||
-			(moveState == PlayerMovementState.Lunging) ||
-			(moveState == PlayerMovementState.CrouchLunging);
-	}
-
-	private bool AttackStateDisallowsHeadbob()
-	{
-		return (attackState == PlayerAttackState.JumpKicking ||
-			attackState == PlayerAttackState.SlideKicking);
+		return moveState == PlayerMovementState.Sliding;
 	}
 }
