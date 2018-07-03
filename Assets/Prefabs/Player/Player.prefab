@@ -2824,9 +2824,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ae6f7cef10723494585576a6ee25bdeb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rotX: 0
-  rotY: 0
-  distanceFromPlayer: 1.5
 --- !u!114 &114252358778383702
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -2879,19 +2876,19 @@ MonoBehaviour:
   fixedUpdatesPerSecond: 60
   clampToMovingGround: 1
   debugSpheres: 1
-  debugGrounding: 1
-  debugPushbackMesssages: 1
+  debugGrounding: 0
+  debugPushbackMesssages: 0
   spheres:
-  - offset: 0.4
+  - offset: 0.35
     isFeet: 1
     isHead: 0
-  - offset: 0.8
+  - offset: 0.7
     isFeet: 0
     isHead: 0
-  - offset: 1.2
+  - offset: 1.05
     isFeet: 0
     isHead: 0
-  - offset: 1.6
+  - offset: 1.4
     isFeet: 0
     isHead: 1
   Walkable:
@@ -2983,9 +2980,9 @@ CapsuleCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   m_Radius: 0.4
-  m_Height: 2
+  m_Height: 1.8
   m_Direction: 1
-  m_Center: {x: 0, y: 1, z: 0}
+  m_Center: {x: 0, y: 0.9, z: 0}
 --- !u!137 &137027480495083082
 SkinnedMeshRenderer:
   m_ObjectHideFlags: 1

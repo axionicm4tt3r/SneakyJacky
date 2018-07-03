@@ -414,6 +414,36 @@ Prefab:
       propertyPath: m_Controller
       value: 
       objectReference: {fileID: 9100000, guid: c1e911a1fd9feae47a4597eda2ecff5b, type: 2}
+    - target: {fileID: 114379109696973968, guid: cf90af9d33b61e8409de30f594c3a41d,
+        type: 2}
+      propertyPath: debugSpheres
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 114379109696973968, guid: cf90af9d33b61e8409de30f594c3a41d,
+        type: 2}
+      propertyPath: spheres.Array.data[0].offset
+      value: 0.35
+      objectReference: {fileID: 0}
+    - target: {fileID: 114379109696973968, guid: cf90af9d33b61e8409de30f594c3a41d,
+        type: 2}
+      propertyPath: spheres.Array.data[1].offset
+      value: 0.7
+      objectReference: {fileID: 0}
+    - target: {fileID: 114379109696973968, guid: cf90af9d33b61e8409de30f594c3a41d,
+        type: 2}
+      propertyPath: spheres.Array.data[2].offset
+      value: 1.05
+      objectReference: {fileID: 0}
+    - target: {fileID: 114379109696973968, guid: cf90af9d33b61e8409de30f594c3a41d,
+        type: 2}
+      propertyPath: spheres.Array.data[3].offset
+      value: 1.4
+      objectReference: {fileID: 0}
+    - target: {fileID: 114379109696973968, guid: cf90af9d33b61e8409de30f594c3a41d,
+        type: 2}
+      propertyPath: radius
+      value: 0.4
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: cf90af9d33b61e8409de30f594c3a41d, type: 2}
   m_IsPrefabParent: 0

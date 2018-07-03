@@ -39,9 +39,12 @@ public class PlayerMovementStateMachine : SuperStateMachine
 	private PlayerAttackStateMachine playerAttackStateMachine;
 
 	//Change these if you mess with the player size
-	private float collisionSphereSize = 0.4f;
-	private Vector3 standingTorsoPosition = new Vector3(0, 1.2f, 0);
-	private Vector3 standingHeadPosition = new Vector3(0, 1.6f, 0);
+	private float collisionSphereSize = 0.35f;
+	private Vector3 standingTorsoPosition = new Vector3(0, 1.05f, 0);
+	private Vector3 standingHeadPosition = new Vector3(0, 1.4f, 0);
+	private const float standingHeight = 1.8f;
+	private const float crouchingHeight = 0.9f;
+	private float currentHeight = 1.8f;
 
 	private bool jumpInputHandled;
 	private float fallStartingHeight = 0f;
@@ -545,14 +548,24 @@ public class PlayerMovementStateMachine : SuperStateMachine
 
 	private void GoToCrouching()
 	{
-		controller.SetCrouchingSpheres();
-		controller.heightScale = 0.5f;
+		currentHeight = Mathf.Lerp(currentHeight, crouchingHeight,
+			Mathf.Min(TimeSinceEnteringCurrentState / ChangeStanceSpeed, 1));
+
+		var offsetRatio = currentHeight / standingHeight;
+		if (currentHeight <= standingHeight / 2)
+			controller.SetCrouchingSpheres();
+		controller.heightScale = offsetRatio;
 	}
 
 	private void GoToStanding()
 	{
-		controller.SetStandingSpheres();
-		controller.heightScale = 1f;
+		currentHeight = Mathf.Lerp(currentHeight, standingHeight,
+			Mathf.Min(TimeSinceEnteringCurrentState / ChangeStanceSpeed, 1));
+
+		var offsetRatio = currentHeight / standingHeight;
+		if (currentHeight > standingHeight / 2)
+			controller.SetStandingSpheres();
+		controller.heightScale = offsetRatio;
 	}
 
 	private bool PlayerCanExitCrouch()

@@ -7,7 +7,7 @@ public class PlayerCamera : MonoBehaviour
 	private float rotY = 0.0f;
 
 	private float distanceFromPlayer = 1.5f;
-	private float pivotHeight = 0.8f;
+	private float pivotHeight = 0.9f;
 
 	private GameObject player;
 	private Camera playerCamera;
