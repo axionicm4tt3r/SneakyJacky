@@ -33,7 +33,7 @@ public class PlayerAnimationManager : MonoBehaviour {
 
 	internal void ExecuteBasicAttack()
 	{
-		SetAnimationBool(AnimationCodes.BasicAttacking, true);
+		SetAnimationTrigger(AnimationCodes.BasicAttacking);
 		SetAnimationInteger(AnimationCodes.BasicAttackIndex, UnityEngine.Random.Range(0, 2));
 	}
 

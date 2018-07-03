@@ -16,6 +16,7 @@ public class PlayerAttackStateMachine : SuperStateMachine
 
 	//Attack Motion Times - Convert these to frames?
 	public float BasicAttackMotionTime = 0.3f;
+	public float GrappleMotionTime = 1.2f;
 
 	//Attack Cooldown Times
 	public float BasicAttackCooldown = 0.1f;
@@ -123,11 +124,11 @@ public class PlayerAttackStateMachine : SuperStateMachine
 
 	void Grappling_SuperUpdate()
 	{
-		//if (TimeSinceEnteringCurrentState >= BasicAttackMotionTime)
-		//{
-		CurrentState = PlayerAttackState.Idle;
-		return;
-		//}
+		if (TimeSinceEnteringCurrentState >= GrappleMotionTime)
+		{
+			CurrentState = PlayerAttackState.Idle;
+			return;
+		}
 
 		//Determine which type of grapple we need to apply to the player from the AttackManager.
 		//See which move we should perform. Let the enemy have a chance to counter it if they know what we're doing.

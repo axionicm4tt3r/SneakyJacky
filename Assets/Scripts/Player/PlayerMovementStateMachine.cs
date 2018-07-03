@@ -545,24 +545,14 @@ public class PlayerMovementStateMachine : SuperStateMachine
 
 	private void GoToCrouching()
 	{
-		PlayerCamera.currentViewYOffset = Mathf.Lerp(PlayerCamera.currentViewYOffset, PlayerCamera.PLAYER_CROUCHING_VIEW_Y_OFFSET,
-			Mathf.Min(TimeSinceEnteringCurrentState / ChangeStanceSpeed, 1));
-
-		var offsetRatio = PlayerCamera.currentViewYOffset / PlayerCamera.PLAYER_STANDING_VIEW_Y_OFFSET;
-		if (PlayerCamera.currentViewYOffset <= PlayerCamera.PLAYER_STANDING_VIEW_Y_OFFSET / 2)
-			controller.SetCrouchingSpheres();
-		controller.heightScale = offsetRatio;
+		controller.SetCrouchingSpheres();
+		controller.heightScale = 0.5f;
 	}
 
 	private void GoToStanding()
 	{
-		PlayerCamera.currentViewYOffset = Mathf.Lerp(PlayerCamera.currentViewYOffset, PlayerCamera.PLAYER_STANDING_VIEW_Y_OFFSET,
-			Mathf.Min(TimeSinceEnteringCurrentState / ChangeStanceSpeed, 1));
-
-		var offsetRatio = PlayerCamera.currentViewYOffset / PlayerCamera.PLAYER_STANDING_VIEW_Y_OFFSET;
-		if (PlayerCamera.currentViewYOffset > PlayerCamera.PLAYER_STANDING_VIEW_Y_OFFSET / 2)
-			controller.SetStandingSpheres();
-		controller.heightScale = offsetRatio;
+		controller.SetStandingSpheres();
+		controller.heightScale = 1f;
 	}
 
 	private bool PlayerCanExitCrouch()
@@ -573,13 +563,13 @@ public class PlayerMovementStateMachine : SuperStateMachine
 		return torsoCheck.Length == 0 && headCheck.Length == 0;
 	}
 
-	private void OnDrawGizmos()
-	{
-		Gizmos.color = Color.red;
-		Gizmos.DrawWireSphere(transform.position + standingTorsoPosition, collisionSphereSize);
-		Gizmos.color = Color.blue;
-		Gizmos.DrawWireSphere(transform.position + standingHeadPosition, collisionSphereSize);
-	}
+	//private void OnDrawGizmos()
+	//{
+	//	Gizmos.color = Color.red;
+	//	Gizmos.DrawWireSphere(transform.position + standingTorsoPosition, collisionSphereSize);
+	//	Gizmos.color = Color.blue;
+	//	Gizmos.DrawWireSphere(transform.position + standingHeadPosition, collisionSphereSize);
+	//}
 }
 
 public enum PlayerMovementState

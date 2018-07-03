@@ -13,7 +13,7 @@ public class PlayerAttackManager : MonoBehaviour
 	PlayerAttackStateMachine playerAttackStateMachine;
 	PlayerSoundManager playerSoundManager;
 
-	BoxCollider playerHitbox;
+	SphereCollider playerHitbox;
 
 	List<IAttackable> enemiesHit = new List<IAttackable>();
 
@@ -21,7 +21,7 @@ public class PlayerAttackManager : MonoBehaviour
 	{
 		playerAttackStateMachine = GetComponentInParent<PlayerAttackStateMachine>();
 		playerSoundManager = GetComponentInParent<PlayerSoundManager>();
-		playerHitbox = GameObject.FindGameObjectWithTag(Helpers.Tags.PlayerHitbox).GetComponent<BoxCollider>();
+		playerHitbox = GameObject.FindGameObjectWithTag(Helpers.Tags.PlayerHitbox).GetComponent<SphereCollider>();
 	}
 
 	public void BasicAttack()
@@ -52,13 +52,10 @@ public class PlayerAttackManager : MonoBehaviour
 
 	public List<IAttackable> CheckInstantFrameHitboxForEnemies(out bool hasEnemy)
 	{
-		Vector3 size = playerHitbox.size / 2;
-		size.x = Mathf.Abs(size.x);
-		size.y = Mathf.Abs(size.y);
-		size.z = Mathf.Abs(size.z);
-		ExtDebug.DrawBox(playerHitbox.transform.position + playerHitbox.transform.forward * 0.5f, size, playerHitbox.transform.rotation, Color.blue);
+		//Gizmos.color = Color.blue;
+		//Gizmos.DrawWireSphere(playerHitbox.transform.position, playerHitbox.radius);
 		int layerMask = LayerMask.GetMask(Helpers.Layers.Enemy, Helpers.Layers.Interactable);
-		Collider[] colliders = Physics.OverlapBox(playerHitbox.transform.position + playerHitbox.transform.forward * 0.5f, size, playerHitbox.transform.rotation, layerMask);
+		Collider[] colliders = Physics.OverlapSphere(playerHitbox.transform.position, playerHitbox.radius, layerMask);
 		var results = new List<IAttackable>();
 
 		foreach (Collider collider in colliders)
@@ -79,6 +76,12 @@ public class PlayerAttackManager : MonoBehaviour
 	{
 		enemiesHit.Clear();
 	}
+
+	//private void OnDrawGizmos()
+	//{
+	//	Gizmos.color = Color.blue;
+	//	Gizmos.DrawWireSphere(playerHitbox.transform.position, playerHitbox.radius);
+	//}
 }
 
 public static class PlayerAttackManagerExtensions
