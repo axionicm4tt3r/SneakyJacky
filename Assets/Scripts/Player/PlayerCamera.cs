@@ -3,10 +3,11 @@ using UnityEngine;
 
 public class PlayerCamera : MonoBehaviour
 {
-	public float rotX = 0.0f;
-	public float rotY = 0.0f;
+	private float rotX = 0.0f;
+	private float rotY = 0.0f;
 
-	public float distanceFromPlayer = 1.5f;
+	private float distanceFromPlayer = 1.5f;
+	private float pivotHeight = 0.8f;
 
 	private GameObject player;
 	private Camera playerCamera;
@@ -51,7 +52,7 @@ public class PlayerCamera : MonoBehaviour
 			rotX = 80;
 
 		transform.root.rotation = Quaternion.Euler(0, rotY, 0);
-		transform.localPosition = new Vector3(0, -Mathf.Cos((90 + rotX) * Mathf.Deg2Rad) + 0.8f, -Mathf.Sin((90 + rotX) * Mathf.Deg2Rad)) * distanceFromPlayer;
+		transform.localPosition = new Vector3(0, -Mathf.Cos((90 + rotX) * Mathf.Deg2Rad) + pivotHeight, -Mathf.Sin((90 + rotX) * Mathf.Deg2Rad)) * distanceFromPlayer;
 		this.transform.rotation = Quaternion.Euler(rotX, rotY, 0);
 	}
 }

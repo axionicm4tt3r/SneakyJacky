@@ -2824,6 +2824,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ae6f7cef10723494585576a6ee25bdeb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  rotX: 0
+  rotY: 0
+  distanceFromPlayer: 1.5
 --- !u!114 &114252358778383702
 MonoBehaviour:
   m_ObjectHideFlags: 1
