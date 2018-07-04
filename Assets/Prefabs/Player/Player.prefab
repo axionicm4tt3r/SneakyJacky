@@ -2838,8 +2838,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   debugMove: {x: 0, y: 0, z: 0}
   triggerInteraction: 0
-  fixedTimeStep: 1
-  fixedUpdatesPerSecond: 60
+  fixedTimeStep: 0
+  fixedUpdatesPerSecond: 0
   clampToMovingGround: 1
   debugSpheres: 1
   debugGrounding: 0
