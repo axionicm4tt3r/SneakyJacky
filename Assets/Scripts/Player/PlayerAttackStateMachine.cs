@@ -130,6 +130,8 @@ public class PlayerAttackStateMachine : SuperStateMachine
 			return;
 		}
 
+		//Make Grapple Attempt
+
 		//Determine which type of grapple we need to apply to the player from the AttackManager.
 		//See which move we should perform. Let the enemy have a chance to counter it if they know what we're doing.
 		//Perform the attack
