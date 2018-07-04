@@ -9,6 +9,8 @@ TagManager:
   - Interactable
   - EnemyHitbox
   - PlayerHitbox
+  - CameraLookTarget
+  - CameraPositionPivot
   layers:
   - Default
   - TransparentFX

@@ -7,6 +7,8 @@ public static class Helpers
 		public const string Interactable = "Interactable";
 		public const string Enemy = "Enemy";
 		public const string PlayerCamera = "MainCamera";
+		public const string CameraLookTarget = "CameraLookTarget";
+		public const string CameraPositionPivot = "CameraPositionPivot";
 		public const string Player = "Player";
 		public const string PlayerHUD = "PlayerHUD";
 		public const string PlayerHitbox = "PlayerHitbox";

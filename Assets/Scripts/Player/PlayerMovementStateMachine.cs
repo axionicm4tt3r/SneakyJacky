@@ -28,6 +28,8 @@ public class PlayerMovementStateMachine : SuperStateMachine
 	public const float SlideVelocity = 8f;
 	public const float SlideDuration = 0.5f;
 
+	private float rotationDampSpeed = 0.38f;
+
 	public Vector3 moveDirection;
 	public Vector3 lookDirection { get; private set; }
 
@@ -42,9 +44,9 @@ public class PlayerMovementStateMachine : SuperStateMachine
 	private float collisionSphereSize = 0.35f;
 	private Vector3 standingTorsoPosition = new Vector3(0, 1.05f, 0);
 	private Vector3 standingHeadPosition = new Vector3(0, 1.4f, 0);
-	private const float standingHeight = 1.8f;
-	private const float crouchingHeight = 0.9f;
-	private float currentHeight = 1.8f;
+	private const float standingHeight = 1.75f;
+	private const float crouchingHeight = 0.875f;
+	private float currentHeight = 1.75f;
 
 	private bool jumpInputHandled;
 	private float fallStartingHeight = 0f;
@@ -63,7 +65,7 @@ public class PlayerMovementStateMachine : SuperStateMachine
 	{
 		get
 		{
-			return Helpers.Direction(Vector2.SignedAngle(new Vector2(moveDirection.x, moveDirection.z), new Vector2(transform.forward.x, transform.forward.z)));
+			return Helpers.Direction(Vector2.SignedAngle(new Vector2(moveDirection.x, moveDirection.z), new Vector2(playerCamera.transform.forward.x, playerCamera.transform.forward.z)));
 		}
 	}
 
@@ -104,7 +106,7 @@ public class PlayerMovementStateMachine : SuperStateMachine
 	{
 		controller = gameObject.GetComponent<SuperCharacterController>();
 		playerCollider = gameObject.GetComponent<CapsuleCollider>();
-		playerCamera = gameObject.GetComponentInChildren<PlayerCamera>();
+		playerCamera = GameObject.FindGameObjectWithTag(Helpers.Tags.PlayerCamera).GetComponent<PlayerCamera>();
 		playerInputManager = gameObject.GetComponent<PlayerInputManager>();
 		playerStatus = gameObject.GetComponent<PlayerStatus>();
 		playerAttackStateMachine = gameObject.GetComponent<PlayerAttackStateMachine>();
@@ -119,6 +121,8 @@ public class PlayerMovementStateMachine : SuperStateMachine
 
 	protected override void LateGlobalSuperUpdate()
 	{
+		//Debug.Log($"Movement is {LocalMovementCardinalDirection}");
+
 		if (Input.GetButtonUp(InputCodes.Jump))
 			jumpInputHandled = false;
 
@@ -130,6 +134,10 @@ public class PlayerMovementStateMachine : SuperStateMachine
 			GoToStanding();
 
 		transform.position += moveDirection * controller.deltaTime;
+
+		Vector3 planarMoveDirection = Math3d.ProjectVectorOnPlane(controller.up, moveDirection);
+		if (planarMoveDirection.magnitude != 0)
+			transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.LookRotation(planarMoveDirection.normalized), rotationDampSpeed);
 	}
 
 	public bool AcquiringGround()
@@ -158,25 +166,21 @@ public class PlayerMovementStateMachine : SuperStateMachine
 		}
 	}
 
-	public void RotateGravity(Vector3 up)
+	private Vector3 CameraMovement()
 	{
-		lookDirection = Quaternion.FromToRotation(transform.up, up) * lookDirection;
-	}
-
-	private Vector3 LocalMovement()
-	{
-		Vector3 right = Vector3.Cross(controller.up, lookDirection);
+		var cameraForward = new Vector3(playerCamera.transform.forward.x, 0, playerCamera.transform.forward.z);
+		var cameraRight = new Vector3(playerCamera.transform.right.x, 0, playerCamera.transform.right.z);
 
 		Vector3 local = Vector3.zero;
 
 		if (playerInputManager.Current.MoveInput.x != 0)
 		{
-			local += right * playerInputManager.Current.MoveInput.x;
+			local += cameraRight * playerInputManager.Current.MoveInput.x;
 		}
 
 		if (playerInputManager.Current.MoveInput.z != 0)
 		{
-			local += lookDirection * playerInputManager.Current.MoveInput.z;
+			local += cameraForward * playerInputManager.Current.MoveInput.z;
 		}
 
 		return local.normalized;
@@ -316,7 +320,7 @@ public class PlayerMovementStateMachine : SuperStateMachine
 		}
 
 		var targetSpeed = playerInputManager.Current.WalkInput ? RunSpeed * WalkSpeedFactor : RunSpeed;
-		moveDirection = Vector3.MoveTowards(moveDirection, LocalMovement() * targetSpeed, RunAcceleration * controller.deltaTime);
+		moveDirection = Vector3.MoveTowards(moveDirection, CameraMovement() * targetSpeed, RunAcceleration * controller.deltaTime);
 	}
 	#endregion
 
@@ -354,7 +358,7 @@ public class PlayerMovementStateMachine : SuperStateMachine
 		}
 
 		var targetSpeed = playerInputManager.Current.WalkInput ? CrouchSpeed * WalkSpeedFactor : CrouchSpeed;
-		moveDirection = Vector3.MoveTowards(moveDirection, LocalMovement() * targetSpeed, CrouchAcceleration * controller.deltaTime);
+		moveDirection = Vector3.MoveTowards(moveDirection, CameraMovement() * targetSpeed, CrouchAcceleration * controller.deltaTime);
 	}
 	#endregion
 
@@ -379,7 +383,7 @@ public class PlayerMovementStateMachine : SuperStateMachine
 			return;
 		}
 
-		moveDirection = Vector3.MoveTowards(moveDirection, LocalMovement() * SlideVelocity, SlideVelocity * controller.deltaTime);
+		moveDirection = Vector3.MoveTowards(moveDirection, CameraMovement() * SlideVelocity, SlideVelocity * controller.deltaTime);
 	}
 	#endregion
 
@@ -490,7 +494,7 @@ public class PlayerMovementStateMachine : SuperStateMachine
 			}
 		}
 
-		planarMoveDirection = Vector3.MoveTowards(planarMoveDirection, LocalMovement() * RunSpeed, AirControl * RunAcceleration * controller.deltaTime);
+		planarMoveDirection = Vector3.MoveTowards(planarMoveDirection, CameraMovement() * RunSpeed, AirControl * RunAcceleration * controller.deltaTime);
 		verticalMoveDirection -= controller.up * Gravity * controller.deltaTime;
 		moveDirection = planarMoveDirection + verticalMoveDirection;
 	}
@@ -530,7 +534,7 @@ public class PlayerMovementStateMachine : SuperStateMachine
 		}
 
 		Vector3 planarMoveDirection = Math3d.ProjectVectorOnPlane(controller.up, moveDirection);
-		planarMoveDirection = Vector3.MoveTowards(planarMoveDirection, LocalMovement() * RunSpeed, AirControl * RunAcceleration * controller.deltaTime);
+		planarMoveDirection = Vector3.MoveTowards(planarMoveDirection, CameraMovement() * RunSpeed, AirControl * RunAcceleration * controller.deltaTime);
 		moveDirection -= controller.up * Gravity * controller.deltaTime;
 	}
 	#endregion
@@ -554,7 +558,9 @@ public class PlayerMovementStateMachine : SuperStateMachine
 		var offsetRatio = currentHeight / standingHeight;
 		if (currentHeight <= standingHeight / 2)
 			controller.SetCrouchingSpheres();
-		controller.heightScale = offsetRatio;
+		controller.heightScale = Mathf.Clamp(offsetRatio, 0.5f, 1);
+		playerCollider.height = crouchingHeight;
+		playerCollider.center = new Vector3(0, crouchingHeight / 2, 0);
 	}
 
 	private void GoToStanding()
@@ -565,7 +571,9 @@ public class PlayerMovementStateMachine : SuperStateMachine
 		var offsetRatio = currentHeight / standingHeight;
 		if (currentHeight > standingHeight / 2)
 			controller.SetStandingSpheres();
-		controller.heightScale = offsetRatio;
+		controller.heightScale = Mathf.Clamp(offsetRatio, 0.5f, 1);
+		playerCollider.height = standingHeight;
+		playerCollider.center = new Vector3(0, crouchingHeight, 0);
 	}
 
 	private bool PlayerCanExitCrouch()
@@ -575,14 +583,6 @@ public class PlayerMovementStateMachine : SuperStateMachine
 
 		return torsoCheck.Length == 0 && headCheck.Length == 0;
 	}
-
-	//private void OnDrawGizmos()
-	//{
-	//	Gizmos.color = Color.red;
-	//	Gizmos.DrawWireSphere(transform.position + standingTorsoPosition, collisionSphereSize);
-	//	Gizmos.color = Color.blue;
-	//	Gizmos.DrawWireSphere(transform.position + standingHeadPosition, collisionSphereSize);
-	//}
 }
 
 public enum PlayerMovementState

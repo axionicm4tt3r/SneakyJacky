@@ -62,10 +62,11 @@ public class SuperCharacterController : MonoBehaviour
 
 	[SerializeField]
 	CollisionSphere[] spheres =
-		new CollisionSphere[3] {
-			new CollisionSphere(0.5f, true, false),
-			new CollisionSphere(1.0f, false, false),
-			new CollisionSphere(1.5f, false, true),
+		new CollisionSphere[4] {
+			new CollisionSphere(0.35f, true, false),
+			new CollisionSphere(0.7f, false, false),
+			new CollisionSphere(1.05f, false, false),
+			new CollisionSphere(1.4f, false, true),
 		};
 
 	CollisionSphere[] standingSpheres;
@@ -77,7 +78,7 @@ public class SuperCharacterController : MonoBehaviour
 	Collider ownCollider;
 
 	[SerializeField]
-	public float radius = 0.5f;
+	public float radius = 0.35f;
 
 	public float deltaTime { get; private set; }
 	public SuperGround currentGround { get; private set; }
