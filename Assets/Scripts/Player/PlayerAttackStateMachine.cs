@@ -6,9 +6,9 @@ public class PlayerAttackStateMachine : SuperStateMachine
 	private PlayerStatus playerStatus;
 	private PlayerAnimationManager playerAnimationManager;
 	private PlayerAttackManager playerAttackManager;
-	private PlayerInputManager playerInputManager;
+	//private PlayerInputManager playerInputManager;
 	private PlayerInteractionManager playerInteractionManager;
-	private PlayerMovementStateMachine playerMovementStateMachine;
+	//private PlayerMovementStateMachine playerMovementStateMachine;
 
 	public float MaxChargeAttackDamageMultiplier = 2.5f;
 	public float ChargeAttackMinimumChargePercentage = 0.3f;
@@ -30,9 +30,10 @@ public class PlayerAttackStateMachine : SuperStateMachine
 	{
 		get
 		{
-			return !((PlayerMovementState)playerMovementStateMachine.CurrentState == PlayerMovementState.Sliding ||
-					(PlayerMovementState)playerMovementStateMachine.CurrentState == PlayerMovementState.Jumping ||
-					(PlayerMovementState)playerMovementStateMachine.CurrentState == PlayerMovementState.Falling);
+			return true;
+			//return !((PlayerMovementState)playerMovementStateMachine.CurrentState == PlayerMovementState.Sliding ||
+			//		(PlayerMovementState)playerMovementStateMachine.CurrentState == PlayerMovementState.Jumping ||
+			//		(PlayerMovementState)playerMovementStateMachine.CurrentState == PlayerMovementState.Falling);
 		}
 	}
 	#endregion
@@ -48,9 +49,9 @@ public class PlayerAttackStateMachine : SuperStateMachine
 		playerStatus = GetComponent<PlayerStatus>();
 		playerAnimationManager = GetComponent<PlayerAnimationManager>();
 		playerAttackManager = GetComponent<PlayerAttackManager>();
-		playerInputManager = GetComponent<PlayerInputManager>();
+		//playerInputManager = GetComponent<PlayerInputManager>();
 		playerInteractionManager = GetComponent<PlayerInteractionManager>();
-		playerMovementStateMachine = GetComponent<PlayerMovementStateMachine>();
+		//playerMovementStateMachine = GetComponent<PlayerMovementStateMachine>();
 		CurrentState = PlayerAttackState.Idle;
 	}
 
@@ -75,26 +76,26 @@ public class PlayerAttackStateMachine : SuperStateMachine
 
 	void Idle_SuperUpdate()
 	{
-		if (playerMovementStateMachine.IsRecovering)
-			return;
+		//if (playerMovementStateMachine.IsRecovering)
+		//	return;
 
-		if (playerInputManager.Current.PrimaryFireInput)
-		{
-			PrimaryAttack();
-			return;
-		}
+		//if (playerInputManager.Current.PrimaryFireInput)
+		//{
+		//	PrimaryAttack();
+		//	return;
+		//}
 
-		if (playerInputManager.Current.SecondaryFireInput)
-		{
-			Grapple();
-			return;
-		}
+		//if (playerInputManager.Current.SecondaryFireInput)
+		//{
+		//	Grapple();
+		//	return;
+		//}
 
-		if (playerInputManager.Current.InteractInput)
-		{
-			playerInteractionManager.Interact();
-			return;
-		}
+		//if (playerInputManager.Current.InteractInput)
+		//{
+		//	playerInteractionManager.Interact();
+		//	return;
+		//}
 	}
 	#endregion
 

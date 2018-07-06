@@ -8,7 +8,7 @@ public class PlayerStatus : MonoBehaviour, IAttackable
 
 	public GameObject PlayerHUD;
 
-	private PlayerMovementStateMachine playerMovementStateMachine;
+	//private PlayerMovementStateMachine playerMovementStateMachine;
 
 	private float knockbackRecoveryFraction = 3f;
 	private float currentKnockbackRecoveryTime = 0f;
@@ -39,7 +39,7 @@ public class PlayerStatus : MonoBehaviour, IAttackable
 
 		currentStaggerRecoveryTime = staggerRecoveryTime;
 		//animator.SetBool("Staggered", true);
-		playerMovementStateMachine.moveDirection += staggerDirection * staggerKnockbackVelocity;
+		//playerMovementStateMachine.moveDirection += staggerDirection * staggerKnockbackVelocity;
 
 		TakeDamage(damage);
 	}
@@ -50,7 +50,7 @@ public class PlayerStatus : MonoBehaviour, IAttackable
 
 		currentKnockbackRecoveryTime = knockbackTime;
 		//animator.SetBool("KnockedBack", true);
-		playerMovementStateMachine.moveDirection += knockbackDirection * knockbackVelocity;
+		//playerMovementStateMachine.moveDirection += knockbackDirection * knockbackVelocity;
 
 		TakeDamage(damage);
 	}
