@@ -3,10 +3,6 @@
 
 //public class PlayerMovementStateMachine : SuperStateMachine
 //{
-//	public const float WalkSpeedFactor = 0.5f;
-
-//	public const float ChangeStanceSpeed = 0.3f;
-
 //	public const float JumpingSafeFallHeight = 2.3f * JumpHeight;
 //	public const float FallingSafeFallHeight = 2.6f * JumpHeight;
 //	public const float SafeHeightMultiplier = 1.5f;
@@ -41,11 +37,6 @@
 //		}
 //	}
 //	#endregion
-
-//	void Awake()
-//	{
-//		CurrentState = PlayerMovementState.Standing;
-//	}
 
 //	protected override void LateGlobalSuperUpdate()
 //	{

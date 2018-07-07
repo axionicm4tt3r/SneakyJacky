@@ -3,12 +3,12 @@
 public class Player : MonoBehaviour
 {
 	public float MouseSensitivity = 0.01f;
-	private PlayerController playerController;
+	private PlayerMovementController playerController;
 	private PlayerCamera playerCamera;
 
 	private void Awake()
 	{
-		playerController = gameObject.GetComponent<PlayerController>();
+		playerController = gameObject.GetComponent<PlayerMovementController>();
 		playerCamera = GameObject.FindGameObjectWithTag(Helpers.Tags.PlayerCamera).GetComponent<PlayerCamera>();
 	}
 
@@ -59,8 +59,10 @@ public class Player : MonoBehaviour
 		movementInputs.CameraRotation = playerCamera.Transform.rotation;
 		movementInputs.Walk = Input.GetButton(InputCodes.Walk);
 		movementInputs.Jump = Input.GetButtonDown(InputCodes.Jump);
-		movementInputs.CrouchDown = Input.GetButtonDown(InputCodes.Crouch);
-		movementInputs.CrouchUp = Input.GetButtonUp(InputCodes.Crouch);
+		movementInputs.JumpHold = Input.GetButtonDown(InputCodes.Jump);
+		movementInputs.Crouch = Input.GetButtonDown(InputCodes.Crouch);
+		movementInputs.Slide = Input.GetButtonDown(InputCodes.Slide);
+		movementInputs.SlideHold = Input.GetButton(InputCodes.Slide);
 
 		playerController.SetInputs(ref movementInputs);
 	}
@@ -81,8 +83,10 @@ public class Player : MonoBehaviour
 		public Quaternion CameraRotation;
 		public bool Walk;
 		public bool Jump;
-		public bool CrouchDown;
-		public bool CrouchUp;
+		public bool JumpHold;
+		public bool Crouch;
+		public bool Slide;
+		public bool SlideHold;
 	}
 
 	public struct PlayerInteractionInputs
@@ -101,6 +105,7 @@ public class Player : MonoBehaviour
 		public const string Walk = "Walk";
 		public const string Jump = "Jump";
 		public const string Crouch = "Crouch";
+		public const string Slide = "Slide";
 		public const string PrimaryFire = "PrimaryFire";
 		public const string SecondaryFire = "SecondaryFire";
 		public const string Interact = "Interact";

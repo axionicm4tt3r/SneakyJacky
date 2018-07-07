@@ -6,7 +6,8 @@ using System;
 
 public enum PlayerMovementState
 {
-	Default
+	Default,
+	Sliding
 }
 
 public enum OrientationMethod
@@ -15,7 +16,7 @@ public enum OrientationMethod
 	TowardsMovement
 }
 
-public class PlayerController : BaseCharacterController
+public class PlayerMovementController : BaseCharacterController
 {
 	[Header("Stable Movement")]
 	public float MaxStableRunSpeed = 5f;
@@ -37,6 +38,11 @@ public class PlayerController : BaseCharacterController
 	public float JumpPreGroundingGraceTime = 0f;
 	public float JumpPostGroundingGraceTime = 0f;
 
+	[Header("Sliding")]
+	public float SlideSpeed = 9f;
+	public float MaxSlideTime = 0.3f;
+	public float StoppedTime = 0.3f;
+
 	[Header("Misc")]
 	public List<Collider> IgnoredColliders;
 	public bool OrientTowardsGravity = false;
@@ -44,11 +50,17 @@ public class PlayerController : BaseCharacterController
 	public Transform MeshRoot;
 	public Transform CameraFollowPoint;
 
-	public PlayerMovementState CurrentCharacterState { get; private set; }
+	public PlayerMovementState CurrentPlayerState { get; private set; }
 	public PlayerMovementState PreviousCharacterState { get; private set; }
 	public float TimeEnteredState { get; private set; }
 	public float ZoomLevelFromMovementState { get { return 1; } }
 	public float TimeSinceEnteringState { get { return Time.time - TimeEnteredState; } }
+
+	private Vector3 _currentSlideVelocity;
+	private bool _isStopped;
+	private bool _mustStopVelocity = false;
+	private float _timeSinceStartedSlide = 0;
+	private float _timeSinceStopped = 0;
 
 	private Collider[] _probedColliders = new Collider[8];
 	private Vector3 _moveInputVector;
@@ -66,6 +78,8 @@ public class PlayerController : BaseCharacterController
 	private Vector3 lastInnerNormal = Vector3.zero;
 	private Vector3 lastOuterNormal = Vector3.zero;
 
+	private Player.PlayerMovementInputs _bufferedInputs;
+
 	private void Start()
 	{
 		TransitionToState(PlayerMovementState.Default);
@@ -79,9 +93,9 @@ public class PlayerController : BaseCharacterController
 	/// </summary>
 	public void TransitionToState(PlayerMovementState newState)
 	{
-		PreviousCharacterState = CurrentCharacterState;
+		PreviousCharacterState = CurrentPlayerState;
 		OnStateExit(PreviousCharacterState, newState);
-		CurrentCharacterState = newState;
+		CurrentPlayerState = newState;
 		TimeEnteredState = Time.time;
 		OnStateEnter(newState, PreviousCharacterState);
 	}
@@ -95,6 +109,14 @@ public class PlayerController : BaseCharacterController
 		{
 			case PlayerMovementState.Default:
 				{
+					break;
+				}
+			case PlayerMovementState.Sliding:
+				{
+					_currentSlideVelocity = Motor.CharacterForward * SlideSpeed;
+					_isStopped = false;
+					_timeSinceStartedSlide = 0f;
+					_timeSinceStopped = 0f;
 					break;
 				}
 		}
@@ -111,6 +133,13 @@ public class PlayerController : BaseCharacterController
 				{
 					break;
 				}
+			case PlayerMovementState.Sliding:
+				{
+					if (!_bufferedInputs.SlideHold)
+						HandleCrouching();
+					break;
+				}
+
 		}
 	}
 
@@ -119,6 +148,15 @@ public class PlayerController : BaseCharacterController
 	/// </summary>
 	public void SetInputs(ref Player.PlayerMovementInputs inputs)
 	{
+		_bufferedInputs = inputs;
+
+		// Handle state transition from input
+		if (inputs.Slide)
+		{
+			if (!_isCrouching && HandleCrouching())
+				TransitionToState(PlayerMovementState.Sliding);
+		}
+
 		// Clamp input
 		Vector3 moveInputVector = new Vector3(inputs.MoveAxisRight, 0f, inputs.MoveAxisForward).normalized;
 
@@ -130,7 +168,7 @@ public class PlayerController : BaseCharacterController
 		}
 		Quaternion cameraPlanarRotation = Quaternion.LookRotation(cameraPlanarDirection, Motor.CharacterUp);
 
-		switch (CurrentCharacterState)
+		switch (CurrentPlayerState)
 		{
 			case PlayerMovementState.Default:
 				{
@@ -155,33 +193,13 @@ public class PlayerController : BaseCharacterController
 					}
 
 					// Crouching input
-					if (inputs.CrouchDown)
-					{
-						if (!_shouldBeCrouching)
-						{
-							_shouldBeCrouching = true;
-
-							if (!_isCrouching)
-							{
-								_isCrouching = true;
-								Motor.SetCapsuleDimensions(0.5f, 1f, 0.5f);
-								MeshRoot.localScale = new Vector3(1f, 0.5f, 1f);
-							}
-						}
-						else
-						{
-							_shouldBeCrouching = false;
-						}
-					}
+					if (inputs.Crouch)
+						HandleCrouching();
 
 					if (inputs.Walk)
-					{
 						_isWalking = true;
-					}
 					else
-					{
 						_isWalking = false;
-					}
 
 					break;
 				}
@@ -194,6 +212,23 @@ public class PlayerController : BaseCharacterController
 	/// </summary>
 	public override void BeforeCharacterUpdate(float deltaTime)
 	{
+		switch (CurrentPlayerState)
+		{
+			case PlayerMovementState.Default:
+				{
+					break;
+				}
+			case PlayerMovementState.Sliding:
+				{
+					// Update times
+					_timeSinceStartedSlide += deltaTime;
+					if (_isStopped)
+					{
+						_timeSinceStopped += deltaTime;
+					}
+					break;
+				}
+		}
 	}
 
 	/// <summary>
@@ -203,7 +238,7 @@ public class PlayerController : BaseCharacterController
 	/// </summary>
 	public override void UpdateRotation(ref Quaternion currentRotation, float deltaTime)
 	{
-		switch (CurrentCharacterState)
+		switch (CurrentPlayerState)
 		{
 			case PlayerMovementState.Default:
 				{
@@ -232,7 +267,7 @@ public class PlayerController : BaseCharacterController
 	/// </summary>
 	public override void UpdateVelocity(ref Vector3 currentVelocity, float deltaTime)
 	{
-		switch (CurrentCharacterState)
+		switch (CurrentPlayerState)
 		{
 			case PlayerMovementState.Default:
 				{
@@ -336,6 +371,27 @@ public class PlayerController : BaseCharacterController
 					}
 					break;
 				}
+			case PlayerMovementState.Sliding:
+				{
+					// If we have stopped and need to cancel velocity, do it here
+					if (_mustStopVelocity)
+					{
+						currentVelocity = Vector3.zero;
+						_mustStopVelocity = false;
+					}
+
+					if (_isStopped)
+					{
+						// When stopped, do no velocity handling except gravity
+						currentVelocity += Gravity * deltaTime;
+					}
+					else
+					{
+						// When charging, velocity is always constant
+						currentVelocity = _currentSlideVelocity;
+					}
+					break;
+				}
 		}
 	}
 
@@ -345,7 +401,7 @@ public class PlayerController : BaseCharacterController
 	/// </summary>
 	public override void AfterCharacterUpdate(float deltaTime)
 	{
-		switch (CurrentCharacterState)
+		switch (CurrentPlayerState)
 		{
 			case PlayerMovementState.Default:
 				{
@@ -374,26 +430,22 @@ public class PlayerController : BaseCharacterController
 					}
 
 					// Handle uncrouching
-					if (_isCrouching && !_shouldBeCrouching)
+					HandleUncrouching();
+					break;
+				}
+			case PlayerMovementState.Sliding:
+				{
+					// Detect being stopped by elapsed time
+					if (!_isStopped && _timeSinceStartedSlide > MaxSlideTime)
 					{
-						// Do an overlap test with the character's standing height to see if there are any obstructions
-						Motor.SetCapsuleDimensions(0.5f, 2f, 1f);
-						if (Motor.CharacterOverlap(
-							Motor.TransientPosition,
-							Motor.TransientRotation,
-							_probedColliders,
-							Motor.CollidableLayers,
-							QueryTriggerInteraction.Ignore) > 0)
-						{
-							// If obstructions, just stick to crouching dimensions
-							Motor.SetCapsuleDimensions(0.5f, 1f, 0.5f);
-						}
-						else
-						{
-							// If no obstructions, uncrouch
-							MeshRoot.localScale = new Vector3(1f, 1f, 1f);
-							_isCrouching = false;
-						}
+						_mustStopVelocity = true;
+						_isStopped = true;
+					}
+
+					// Detect end of stopping phase and transition back to default movement state
+					if (_timeSinceStopped > StoppedTime)
+					{
+						TransitionToState(PlayerMovementState.Default);
 					}
 					break;
 				}
@@ -433,11 +485,24 @@ public class PlayerController : BaseCharacterController
 
 	public override void OnMovementHit(Collider hitCollider, Vector3 hitNormal, Vector3 hitPoint, ref HitStabilityReport hitStabilityReport)
 	{
+		switch (CurrentPlayerState)
+		{
+			case PlayerMovementState.Sliding:
+				{
+					// Detect being stopped by obstructions
+					if (!_isStopped && !hitStabilityReport.IsStable && Vector3.Dot(-hitNormal, _currentSlideVelocity.normalized) > 0.5f)
+					{
+						_mustStopVelocity = true;
+						_isStopped = true;
+					}
+					break;
+				}
+		}
 	}
 
 	public void AddVelocity(Vector3 velocity)
 	{
-		switch (CurrentCharacterState)
+		switch (CurrentPlayerState)
 		{
 			case PlayerMovementState.Default:
 				{
@@ -457,5 +522,61 @@ public class PlayerController : BaseCharacterController
 
 	protected void OnLeaveStableGround()
 	{
+		switch (CurrentPlayerState)
+		{
+			case PlayerMovementState.Sliding:
+				{
+					TransitionToState(PlayerMovementState.Default);
+					break;
+				}
+		}
+	}
+
+	private bool HandleCrouching()
+	{
+		if (!_shouldBeCrouching)
+		{
+			_shouldBeCrouching = true;
+
+			if (!_isCrouching)
+			{
+				_isCrouching = true;
+				Motor.SetCapsuleDimensions(0.5f, 1f, 0.5f);
+				MeshRoot.localScale = new Vector3(1f, 0.5f, 1f);
+			}
+
+			return true;
+		}
+		else
+		{
+			_shouldBeCrouching = false;
+			return false;
+		}
+
+	}
+
+	private void HandleUncrouching()
+	{
+		if (_isCrouching && !_shouldBeCrouching)
+		{
+			// Do an overlap test with the character's standing height to see if there are any obstructions
+			Motor.SetCapsuleDimensions(0.5f, 2f, 1f);
+			if (Motor.CharacterOverlap(
+				Motor.TransientPosition,
+				Motor.TransientRotation,
+				_probedColliders,
+				Motor.CollidableLayers,
+				QueryTriggerInteraction.Ignore) > 0)
+			{
+				// If obstructions, just stick to crouching dimensions
+				Motor.SetCapsuleDimensions(0.5f, 1f, 0.5f);
+			}
+			else
+			{
+				// If no obstructions, uncrouch
+				MeshRoot.localScale = new Vector3(1f, 1f, 1f);
+				_isCrouching = false;
+			}
+		}
 	}
 }
