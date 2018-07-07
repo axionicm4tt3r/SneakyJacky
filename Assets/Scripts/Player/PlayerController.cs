@@ -18,31 +18,37 @@ public enum OrientationMethod
 public class PlayerController : BaseCharacterController
 {
 	[Header("Stable Movement")]
-	public float MaxStableMoveSpeed = 10f;
-	public float StableMovementSharpness = 15;
-	public float OrientationSharpness = 10;
+	public float MaxStableRunSpeed = 5f;
+	public float MaxStableCrouchRunSpeed = 3f;
+	public float MaxStableWalkSpeed = 3f;
+	public float MaxStableCrouchWalkSpeed = 2f;
+	public float StableMovementSharpness = 12;
+	public float OrientationSharpness = 12;
 	public OrientationMethod OrientationMethod = OrientationMethod.TowardsCamera;
 
 	[Header("Air Movement")]
-	public float MaxAirMoveSpeed = 10f;
-	public float AirAccelerationSpeed = 5f;
+	public float MaxAirMoveSpeed = 5f;
+	public float AirAccelerationSpeed = 0f;
 	public float Drag = 0.1f;
 
 	[Header("Jumping")]
 	public bool AllowJumpingWhenSliding = false;
-	public float JumpSpeed = 10f;
+	public float JumpSpeed = 6f;
 	public float JumpPreGroundingGraceTime = 0f;
 	public float JumpPostGroundingGraceTime = 0f;
 
 	[Header("Misc")]
-	public List<Collider> IgnoredColliders = new List<Collider>();
+	public List<Collider> IgnoredColliders;
 	public bool OrientTowardsGravity = false;
-	public Vector3 Gravity = new Vector3(0, -30f, 0);
+	public Vector3 Gravity = new Vector3(0, -20f, 0);
 	public Transform MeshRoot;
 	public Transform CameraFollowPoint;
 
 	public PlayerMovementState CurrentCharacterState { get; private set; }
+	public PlayerMovementState PreviousCharacterState { get; private set; }
+	public float TimeEnteredState { get; private set; }
 	public float ZoomLevelFromMovementState { get { return 1; } }
+	public float TimeSinceEnteringState { get { return Time.time - TimeEnteredState; } }
 
 	private Collider[] _probedColliders = new Collider[8];
 	private Vector3 _moveInputVector;
@@ -55,14 +61,17 @@ public class PlayerController : BaseCharacterController
 	private Vector3 _internalVelocityAdd = Vector3.zero;
 	private bool _shouldBeCrouching = false;
 	private bool _isCrouching = false;
+	private bool _isWalking = false;
 
 	private Vector3 lastInnerNormal = Vector3.zero;
 	private Vector3 lastOuterNormal = Vector3.zero;
 
 	private void Start()
 	{
-		// Handle initial state
 		TransitionToState(PlayerMovementState.Default);
+
+		if (IgnoredColliders == null)
+			IgnoredColliders = new List<Collider>();
 	}
 
 	/// <summary>
@@ -70,10 +79,11 @@ public class PlayerController : BaseCharacterController
 	/// </summary>
 	public void TransitionToState(PlayerMovementState newState)
 	{
-		PlayerMovementState tmpInitialState = CurrentCharacterState;
-		OnStateExit(tmpInitialState, newState);
+		PreviousCharacterState = CurrentCharacterState;
+		OnStateExit(PreviousCharacterState, newState);
 		CurrentCharacterState = newState;
-		OnStateEnter(newState, tmpInitialState);
+		TimeEnteredState = Time.time;
+		OnStateEnter(newState, PreviousCharacterState);
 	}
 
 	/// <summary>
@@ -105,7 +115,7 @@ public class PlayerController : BaseCharacterController
 	}
 
 	/// <summary>
-	/// This is called every frame by ExamplePlayer in order to tell the character what its inputs are
+	/// This is called every frame by PlayerController in order to tell the character what its inputs are
 	/// </summary>
 	public void SetInputs(ref Player.PlayerMovementInputs inputs)
 	{
@@ -147,18 +157,30 @@ public class PlayerController : BaseCharacterController
 					// Crouching input
 					if (inputs.CrouchDown)
 					{
-						_shouldBeCrouching = true;
-
-						if (!_isCrouching)
+						if (!_shouldBeCrouching)
 						{
-							_isCrouching = true;
-							Motor.SetCapsuleDimensions(0.5f, 1f, 0.5f);
-							MeshRoot.localScale = new Vector3(1f, 0.5f, 1f);
+							_shouldBeCrouching = true;
+
+							if (!_isCrouching)
+							{
+								_isCrouching = true;
+								Motor.SetCapsuleDimensions(0.5f, 1f, 0.5f);
+								MeshRoot.localScale = new Vector3(1f, 0.5f, 1f);
+							}
+						}
+						else
+						{
+							_shouldBeCrouching = false;
 						}
 					}
-					else if (inputs.CrouchUp)
+
+					if (inputs.Walk)
 					{
-						_shouldBeCrouching = false;
+						_isWalking = true;
+					}
+					else
+					{
+						_isWalking = false;
 					}
 
 					break;
@@ -240,7 +262,15 @@ public class PlayerController : BaseCharacterController
 						// Calculate target velocity
 						Vector3 inputRight = Vector3.Cross(_moveInputVector, Motor.CharacterUp);
 						Vector3 reorientedInput = Vector3.Cross(effectiveGroundNormal, inputRight).normalized * _moveInputVector.magnitude;
-						targetMovementVelocity = reorientedInput * MaxStableMoveSpeed;
+
+						if (_isWalking && _isCrouching)
+							targetMovementVelocity = reorientedInput * MaxStableCrouchWalkSpeed;
+						else if (!_isWalking && _isCrouching)
+							targetMovementVelocity = reorientedInput * MaxStableCrouchRunSpeed;
+						else if (_isWalking && !_isCrouching)
+							targetMovementVelocity = reorientedInput * MaxStableWalkSpeed;
+						else if (!_isWalking && !_isCrouching)
+							targetMovementVelocity = reorientedInput * MaxStableRunSpeed;
 
 						// Smooth movement Velocity
 						currentVelocity = Vector3.Lerp(currentVelocity, targetMovementVelocity, 1 - Mathf.Exp(-StableMovementSharpness * deltaTime));

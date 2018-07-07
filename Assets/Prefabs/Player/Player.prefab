@@ -2776,12 +2776,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f4effc354a733b84d9eb35df9b6c74b5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  MaxStableMoveSpeed: 5
+  MaxStableRunSpeed: 5
+  MaxStableCrouchRunSpeed: 3
+  MaxStableWalkSpeed: 3
+  MaxStableCrouchWalkSpeed: 2
   StableMovementSharpness: 12
   OrientationSharpness: 12
   OrientationMethod: 1
-  MaxAirMoveSpeed: 6
-  AirAccelerationSpeed: 5
+  MaxAirMoveSpeed: 5
+  AirAccelerationSpeed: 0
   Drag: 0.1
   AllowJumpingWhenSliding: 1
   JumpSpeed: 6
