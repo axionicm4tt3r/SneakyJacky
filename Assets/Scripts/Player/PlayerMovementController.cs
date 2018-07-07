@@ -37,6 +37,7 @@ public class PlayerMovementController : BaseCharacterController
 	public float JumpSpeed = 6f;
 	public float JumpPreGroundingGraceTime = 0f;
 	public float JumpPostGroundingGraceTime = 0f;
+	public float JumpRecoveryTime = 0.2f;
 
 	[Header("Sliding")]
 	public float SlideSpeed = 9f;
@@ -70,6 +71,7 @@ public class PlayerMovementController : BaseCharacterController
 	private bool _jumpedThisFrame = false;
 	private float _timeSinceJumpRequested = Mathf.Infinity;
 	private float _timeSinceLastAbleToJump = 0f;
+	private float _timeSinceLastLanded = Mathf.Infinity;
 	private Vector3 _internalVelocityAdd = Vector3.zero;
 	private bool _shouldBeCrouching = false;
 	private bool _isCrouching = false;
@@ -153,7 +155,7 @@ public class PlayerMovementController : BaseCharacterController
 		// Handle state transition from input
 		if (inputs.Slide)
 		{
-			if (!_isCrouching && HandleCrouching())
+			if (Motor.GroundingStatus.IsStableOnGround && !_isCrouching && HandleCrouching())
 				TransitionToState(PlayerMovementState.Sliding);
 		}
 
@@ -274,7 +276,7 @@ public class PlayerMovementController : BaseCharacterController
 					Vector3 targetMovementVelocity = Vector3.zero;
 
 					// Ground movement
-					if (Motor.GroundingStatus.IsStableOnGround)
+					if (Motor.GroundingStatus.IsStableOnGround && _timeSinceLastLanded > JumpRecoveryTime)
 					{
 						Vector3 effectiveGroundNormal = Motor.GroundingStatus.GroundNormal;
 						if (currentVelocity.sqrMagnitude > 0f && Motor.GroundingStatus.SnappingPrevented)
@@ -360,6 +362,7 @@ public class PlayerMovementController : BaseCharacterController
 							_jumpRequested = false;
 							_jumpConsumed = true;
 							_jumpedThisFrame = true;
+
 						}
 					}
 
@@ -368,6 +371,12 @@ public class PlayerMovementController : BaseCharacterController
 					{
 						currentVelocity += _internalVelocityAdd;
 						_internalVelocityAdd = Vector3.zero;
+					}
+
+					if (_mustStopVelocity)
+					{
+						currentVelocity = Vector3.zero;
+						_mustStopVelocity = false;
 					}
 					break;
 				}
@@ -421,6 +430,7 @@ public class PlayerMovementController : BaseCharacterController
 								_jumpConsumed = false;
 							}
 							_timeSinceLastAbleToJump = 0f;
+							_timeSinceLastLanded += deltaTime;
 						}
 						else
 						{
@@ -518,6 +528,15 @@ public class PlayerMovementController : BaseCharacterController
 
 	protected void OnLanded()
 	{
+		switch (CurrentPlayerState)
+		{
+			case PlayerMovementState.Default:
+				{
+					_mustStopVelocity = true;
+					_timeSinceLastLanded = 0f;
+					break;
+				}
+		}
 	}
 
 	protected void OnLeaveStableGround()

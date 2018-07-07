@@ -3,18 +3,7 @@
 
 //public class PlayerMovementStateMachine : SuperStateMachine
 //{
-//	public const float JumpingSafeFallHeight = 2.3f * JumpHeight;
-//	public const float FallingSafeFallHeight = 2.6f * JumpHeight;
-//	public const float SafeHeightMultiplier = 1.5f;
 
-//	public const float StandingRecoveryTime = 0.15f;
-//	public const float CrouchRecoveryTime = 0.11f;
-//	public const float FallingIntoRecoveryTime = 0.35f;
-
-//	public const float SlideVelocity = 8f;
-//	public const float SlideDuration = 0.5f;
-
-//	private bool jumpInputHandled;
 //	private float fallStartingHeight = 0f;
 
 //	public bool InCrouchingState
@@ -38,111 +27,6 @@
 //	}
 //	#endregion
 
-//	protected override void LateGlobalSuperUpdate()
-//	{
-//		//Debug.Log($"Movement is {LocalMovementCardinalDirection}");
-
-//		if (Input.GetButtonUp(InputCodes.Jump))
-//			jumpInputHandled = false;
-
-//		//Check if you're in a crouching state
-//		//Check above your head
-//		if (InCrouchingState)
-//			GoToCrouching();
-//		else
-//			GoToStanding();
-
-//	}
-
-
-//	#region Movement
-
-//	#region Sliding
-//	void Sliding_EnterState()
-//	{
-//		//Go into slide animation
-//	}
-
-//	void Sliding_SuperUpdate()
-//	{
-//		if (!MaintainingGround())
-//		{
-//			CurrentState = PlayerMovementState.Falling;
-//			return;
-//		}
-
-//		if (TimeSinceEnteringCurrentState >= SlideDuration)
-//		{
-
-//			CurrentState = PlayerMovementState.CrouchRecovering;
-//			return;
-//		}
-
-//		moveDirection = Vector3.MoveTowards(moveDirection, CameraMovement() * SlideVelocity, SlideVelocity * controller.deltaTime);
-//	}
-//	#endregion
-
-//	#region Recovering
-//	void Recovering_SuperUpdate()
-//	{
-//		if (!MaintainingGround())
-//		{
-//			CurrentState = PlayerMovementState.Falling;
-//			return;
-//		}
-
-//		//Are we recovering from a fall, or something like a slide?
-//		bool recoverFromFalling = ((PlayerMovementState)lastState == PlayerMovementState.Falling || (PlayerMovementState)lastState == PlayerMovementState.Jumping);
-
-//		if ((recoverFromFalling && TimeSinceEnteringCurrentState >= FallingIntoRecoveryTime) ||
-//			(!recoverFromFalling && TimeSinceEnteringCurrentState >= StandingRecoveryTime))
-//		{
-//			CurrentState = PlayerMovementState.Standing;
-//			return;
-//		}
-
-//		moveDirection = Vector3.MoveTowards(moveDirection, Vector3.zero, RunDeceleration * controller.deltaTime);
-//	}
-//	#endregion
-
-//	#region CrouchRecovering
-//	void CrouchRecovering_SuperUpdate()
-//	{
-//		if (!MaintainingGround())
-//		{
-//			CurrentState = PlayerMovementState.Falling;
-//			return;
-//		}
-
-//		//Are we recovering from a fall, or something like a slide?
-//		bool recoverFromFalling = ((PlayerMovementState)lastState == PlayerMovementState.Falling || (PlayerMovementState)lastState == PlayerMovementState.Jumping);
-
-//		if ((recoverFromFalling && TimeSinceEnteringCurrentState >= FallingIntoRecoveryTime) ||
-//			(!recoverFromFalling && TimeSinceEnteringCurrentState >= CrouchRecoveryTime))
-//		{
-//			if (!playerInputManager.Current.CrouchInput && PlayerCanExitCrouch())
-//			{
-//				CurrentState = PlayerMovementState.Recovering;
-//				return;
-//			}
-//			else
-//			{
-//				if ((PlayerMovementState)lastState != PlayerMovementState.CrouchRecovering)
-//				{
-//					CurrentState = PlayerMovementState.CrouchRecovering;
-//					return;
-//				}
-//				else
-//				{
-//					CurrentState = PlayerMovementState.Crouching;
-//					return;
-//				}
-//			}
-//		}
-
-//		moveDirection = Vector3.MoveTowards(moveDirection, Vector3.zero, CrouchDeceleration * controller.deltaTime);
-//	}
-//	#endregion
 
 //	#region Jumping
 //	void Jumping_EnterState()
@@ -235,30 +119,3 @@
 //	#endregion
 
 //	#endregion
-
-//	private void GoToCrouching()
-//	{
-//		currentHeight = Mathf.Lerp(currentHeight, crouchingHeight,
-//			Mathf.Min(TimeSinceEnteringCurrentState / ChangeStanceSpeed, 1));
-
-//		var offsetRatio = currentHeight / standingHeight;
-//		if (currentHeight <= standingHeight / 2)
-//			controller.SetCrouchingSpheres();
-//		controller.heightScale = Mathf.Clamp(offsetRatio, 0.5f, 1);
-//		playerCollider.height = crouchingHeight;
-//		playerCollider.center = new Vector3(0, crouchingHeight / 2, 0);
-//	}
-
-//	private void GoToStanding()
-//	{
-//		currentHeight = Mathf.Lerp(currentHeight, standingHeight,
-//			Mathf.Min(TimeSinceEnteringCurrentState / ChangeStanceSpeed, 1));
-
-//		var offsetRatio = currentHeight / standingHeight;
-//		if (currentHeight > standingHeight / 2)
-//			controller.SetStandingSpheres();
-//		controller.heightScale = Mathf.Clamp(offsetRatio, 0.5f, 1);
-//		playerCollider.height = standingHeight;
-//		playerCollider.center = new Vector3(0, crouchingHeight, 0);
-//	}
-//}

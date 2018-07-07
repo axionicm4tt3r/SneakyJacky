@@ -9259,8 +9259,9 @@ MonoBehaviour:
   JumpSpeed: 6
   JumpPreGroundingGraceTime: 0
   JumpPostGroundingGraceTime: 0
-  SlideSpeed: 9
-  MaxSlideTime: 0.3
+  JumpRecoveryTime: 0.2
+  SlideSpeed: 6
+  MaxSlideTime: 0.4
   StoppedTime: 0.3
   IgnoredColliders: []
   OrientTowardsGravity: 1

@@ -24,8 +24,8 @@ public class PlayerStatus : MonoBehaviour, IAttackable
 		healthState = HealthState.FreeMoving;
 		Health = MaxHealth;
 
-		if (!GameObject.FindGameObjectWithTag("PlayerHUD"))
-			PlayerHUD = Instantiate(PlayerHUD) as GameObject;
+		//if (!GameObject.FindGameObjectWithTag("PlayerHUD"))
+		//	PlayerHUD = Instantiate(PlayerHUD) as GameObject;
 	}
 
 	public void ReceiveAttack(float damage)
