@@ -69,6 +69,8 @@ public class PlayerMovementController : BaseCharacterController
 	private bool _jumpRequested = false;
 	private bool _jumpConsumed = false;
 	private bool _jumpedThisFrame = false;
+	private bool _mustRecoverFromJump = false;
+	private float _jumpStartYPosition = 0f;
 	private float _timeSinceJumpRequested = Mathf.Infinity;
 	private float _timeSinceLastAbleToJump = 0f;
 	private float _timeSinceLastLanded = Mathf.Infinity;
@@ -218,6 +220,10 @@ public class PlayerMovementController : BaseCharacterController
 		{
 			case PlayerMovementState.Default:
 				{
+					if (_mustRecoverFromJump)
+					{
+						_timeSinceLastLanded += deltaTime;
+					}
 					break;
 				}
 			case PlayerMovementState.Sliding:
@@ -275,8 +281,14 @@ public class PlayerMovementController : BaseCharacterController
 				{
 					Vector3 targetMovementVelocity = Vector3.zero;
 
+					if (_mustRecoverFromJump)
+					{
+						_moveInputVector = Vector3.zero;
+						_jumpRequested = false;
+					}
+
 					// Ground movement
-					if (Motor.GroundingStatus.IsStableOnGround && _timeSinceLastLanded > JumpRecoveryTime)
+					if (Motor.GroundingStatus.IsStableOnGround)
 					{
 						Vector3 effectiveGroundNormal = Motor.GroundingStatus.GroundNormal;
 						if (currentVelocity.sqrMagnitude > 0f && Motor.GroundingStatus.SnappingPrevented)
@@ -363,6 +375,8 @@ public class PlayerMovementController : BaseCharacterController
 							_jumpConsumed = true;
 							_jumpedThisFrame = true;
 
+							if (_shouldBeCrouching)
+								HandleCrouching();
 						}
 					}
 
@@ -373,11 +387,6 @@ public class PlayerMovementController : BaseCharacterController
 						_internalVelocityAdd = Vector3.zero;
 					}
 
-					if (_mustStopVelocity)
-					{
-						currentVelocity = Vector3.zero;
-						_mustStopVelocity = false;
-					}
 					break;
 				}
 			case PlayerMovementState.Sliding:
@@ -430,12 +439,17 @@ public class PlayerMovementController : BaseCharacterController
 								_jumpConsumed = false;
 							}
 							_timeSinceLastAbleToJump = 0f;
-							_timeSinceLastLanded += deltaTime;
 						}
 						else
 						{
 							// Keep track of time since we were last able to jump (for grace period)
 							_timeSinceLastAbleToJump += deltaTime;
+						}
+
+						if (_mustRecoverFromJump)
+						{
+							if (_timeSinceLastLanded >= JumpRecoveryTime)
+								_mustRecoverFromJump = false;
 						}
 					}
 
@@ -532,8 +546,12 @@ public class PlayerMovementController : BaseCharacterController
 		{
 			case PlayerMovementState.Default:
 				{
-					_mustStopVelocity = true;
-					_timeSinceLastLanded = 0f;
+					if (transform.position.y - _jumpStartYPosition <= 0)
+					{
+						_timeSinceLastLanded = 0f;
+						_mustRecoverFromJump = true;
+					}
+					
 					break;
 				}
 		}
@@ -543,6 +561,11 @@ public class PlayerMovementController : BaseCharacterController
 	{
 		switch (CurrentPlayerState)
 		{
+			case PlayerMovementState.Default:
+				{
+					_jumpStartYPosition = transform.position.y;
+					break;
+				}
 			case PlayerMovementState.Sliding:
 				{
 					TransitionToState(PlayerMovementState.Default);
