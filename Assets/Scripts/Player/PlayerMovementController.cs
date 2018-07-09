@@ -58,8 +58,7 @@ public class PlayerMovementController : BaseCharacterController
 	public float TimeSinceEnteringState { get { return Time.time - TimeEnteredState; } }
 
 	private Vector3 _currentSlideVelocity;
-	private bool _isStopped;
-	private bool _mustStopVelocity = false;
+	private bool _isSlideStopped;
 	private float _timeSinceStartedSlide = 0;
 	private float _timeSinceStopped = 0;
 
@@ -118,7 +117,7 @@ public class PlayerMovementController : BaseCharacterController
 			case PlayerMovementState.Sliding:
 				{
 					_currentSlideVelocity = Motor.CharacterForward * SlideSpeed;
-					_isStopped = false;
+					_isSlideStopped = false;
 					_timeSinceStartedSlide = 0f;
 					_timeSinceStopped = 0f;
 					break;
@@ -230,7 +229,7 @@ public class PlayerMovementController : BaseCharacterController
 				{
 					// Update times
 					_timeSinceStartedSlide += deltaTime;
-					if (_isStopped)
+					if (_isSlideStopped)
 					{
 						_timeSinceStopped += deltaTime;
 					}
@@ -391,21 +390,15 @@ public class PlayerMovementController : BaseCharacterController
 				}
 			case PlayerMovementState.Sliding:
 				{
-					// If we have stopped and need to cancel velocity, do it here
-					if (_mustStopVelocity)
-					{
-						currentVelocity = Vector3.zero;
-						_mustStopVelocity = false;
-					}
-
-					if (_isStopped)
+					if (_isSlideStopped)
 					{
 						// When stopped, do no velocity handling except gravity
+						currentVelocity = Vector3.Lerp(currentVelocity, Vector3.zero, 1 - Mathf.Exp(-StableMovementSharpness * deltaTime));
 						currentVelocity += Gravity * deltaTime;
 					}
 					else
 					{
-						// When charging, velocity is always constant
+						// When sliding, velocity is always constant
 						currentVelocity = _currentSlideVelocity;
 					}
 					break;
@@ -460,10 +453,9 @@ public class PlayerMovementController : BaseCharacterController
 			case PlayerMovementState.Sliding:
 				{
 					// Detect being stopped by elapsed time
-					if (!_isStopped && _timeSinceStartedSlide > MaxSlideTime)
+					if (!_isSlideStopped && _timeSinceStartedSlide > MaxSlideTime)
 					{
-						_mustStopVelocity = true;
-						_isStopped = true;
+						_isSlideStopped = true;
 					}
 
 					// Detect end of stopping phase and transition back to default movement state
@@ -514,10 +506,9 @@ public class PlayerMovementController : BaseCharacterController
 			case PlayerMovementState.Sliding:
 				{
 					// Detect being stopped by obstructions
-					if (!_isStopped && !hitStabilityReport.IsStable && Vector3.Dot(-hitNormal, _currentSlideVelocity.normalized) > 0.5f)
+					if (!_isSlideStopped && !hitStabilityReport.IsStable && Vector3.Dot(-hitNormal, _currentSlideVelocity.normalized) > 0.5f)
 					{
-						_mustStopVelocity = true;
-						_isStopped = true;
+						_isSlideStopped = true;
 					}
 					break;
 				}
