@@ -41,21 +41,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!1 &1015791079374490
-GameObject:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  serializedVersion: 5
-  m_Component:
-  - component: {fileID: 4001338478363712}
-  m_Layer: 2
-  m_Name: GrabbedLocation
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
 --- !u!1 &1023341277408514
 GameObject:
   m_ObjectHideFlags: 1
@@ -112,7 +97,7 @@ GameObject:
   - component: {fileID: 4350089271743426}
   m_Layer: 12
   m_Name: CameraLookTarget
-  m_TagString: CameraLookTarget
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -912,6 +897,21 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
+--- !u!1 &1612895872400420
+GameObject:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  serializedVersion: 5
+  m_Component:
+  - component: {fileID: 4500208519634374}
+  m_Layer: 0
+  m_Name: GrabbedLocation
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
 --- !u!1 &1646680492581530
 GameObject:
   m_ObjectHideFlags: 1
@@ -1366,19 +1366,6 @@ Transform:
   m_Father: {fileID: 4480936413732960}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!4 &4001338478363712
-Transform:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1015791079374490}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 1.0999999, z: 0.9}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children: []
-  m_Father: {fileID: 4215498645123982}
-  m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &4004462497343722
 Transform:
   m_ObjectHideFlags: 1
@@ -1386,11 +1373,11 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1937679395239944}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 1, z: 1}
+  m_LocalPosition: {x: 0, y: 1, z: 0.72}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4215498645123982}
-  m_RootOrder: 1
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &4025391105655950
 Transform:
@@ -1691,10 +1678,9 @@ Transform:
   m_LocalPosition: {x: -0, y: 1, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
-  - {fileID: 4001338478363712}
   - {fileID: 4004462497343722}
-  - {fileID: 4860085674888290}
   - {fileID: 4350089271743426}
+  - {fileID: 4860085674888290}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -1836,7 +1822,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4215498645123982}
-  m_RootOrder: 3
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &4380138546783910
 Transform:
@@ -1946,6 +1932,19 @@ Transform:
   - {fileID: 4001160830296100}
   m_Father: {fileID: 4731684249935634}
   m_RootOrder: 4
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!4 &4500208519634374
+Transform:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1612895872400420}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.07, z: 0.003}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 4731684249935634}
+  m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &4504785929239670
 Transform:
@@ -2247,6 +2246,7 @@ Transform:
   - {fileID: 4075794998813636}
   - {fileID: 4511841126951294}
   - {fileID: 4480936413732960}
+  - {fileID: 4500208519634374}
   m_Father: {fileID: 4878517150431714}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -2752,7 +2752,7 @@ MonoBehaviour:
   ChargeAttackMinimumChargePercentage: 0.3
   ChargeAttackLungeMinimumChargePercentage: 0.6
   BasicAttackMotionTime: 0.3
-  GrappleMotionTime: 1.5
+  GrappleMotionTime: 1.2
   BasicAttackCooldown: 0.1
 --- !u!114 &114056668229482642
 MonoBehaviour:
@@ -2782,20 +2782,20 @@ MonoBehaviour:
   MaxStableCrouchWalkSpeed: 2
   StableMovementSharpness: 12
   OrientationSharpness: 12
-  OrientationMethod: 1
+  OrientationMethod: 0
   MaxAirMoveSpeed: 5
   AirAccelerationSpeed: 0
   Drag: 0.1
-  AllowJumpingWhenSliding: 1
+  AllowJumpingWhenSliding: 0
   JumpSpeed: 6
   JumpPreGroundingGraceTime: 0
   JumpPostGroundingGraceTime: 0
   JumpRecoveryTime: 0.2
-  SlideSpeed: 7
-  MaxSlideTime: 0.4
+  SlideSpeed: 9
+  MaxSlideTime: 0.3
   StoppedTime: 0.3
   IgnoredColliders: []
-  OrientTowardsGravity: 1
+  OrientTowardsGravity: 0
   Gravity: {x: 0, y: -20, z: 0}
   MeshRoot: {fileID: 4860085674888290}
   CameraFollowPoint: {fileID: 4350089271743426}
@@ -2871,7 +2871,7 @@ MonoBehaviour:
   PreventSnappingOnLedges: 0
   MaxStableDenivelationAngle: 180
   SimulatedMass: 0.2
-  RigidbodyInteractionType: 2
+  RigidbodyInteractionType: 0
   PreserveAttachedRigidbodyMomentum: 1
   HasPlanarConstraint: 0
   PlanarConstraintAxis: {x: 0, y: 0, z: 1}
@@ -2903,12 +2903,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2fef5a3911204184aa708221e6786f1d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  basicAttackHitSounds:
-  - {fileID: 8300000, guid: 83a2fc845faec334fbe93e72c6de8641, type: 3}
-  - {fileID: 8300000, guid: a49c514b6130c08469cae7d372fc11de, type: 3}
-  basicAttackMissSounds:
-  - {fileID: 8300000, guid: beb9299c30b8f6f4199c258c59a06352, type: 3}
-  - {fileID: 8300000, guid: ae43eff78bf0d6a47af317e88331dd5e, type: 3}
+  basicAttackHitSounds: []
+  basicAttackMissSounds: []
 --- !u!114 &114835253636620654
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -2920,9 +2916,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fc92f6b76f2423d409a22834f7a56a23, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  MaxHealth: 100
-  Health: 100
-  PlayerHUD: {fileID: 1536770228554084, guid: 14bbb78c3da652542a07eb6aff098e62, type: 2}
+  MaxHealth: 0
+  Health: 0
+  PlayerHUD: {fileID: 0}
 --- !u!135 &135271875261308898
 SphereCollider:
   m_ObjectHideFlags: 1

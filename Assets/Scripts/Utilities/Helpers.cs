@@ -4,15 +4,15 @@ public static class Helpers
 {
 	public class Tags
 	{
-		public const string Interactable = "Interactable";
 		public const string Enemy = "Enemy";
+		public const string EnemyHitbox = "EnemyHitbox";
+		public const string Environment = "Environment";
+		public const string Interactable = "Interactable";
 		public const string PlayerCamera = "MainCamera";
-		public const string CameraLookTarget = "CameraLookTarget";
-		public const string CameraPositionPivot = "CameraPositionPivot";
 		public const string Player = "Player";
 		public const string PlayerHUD = "PlayerHUD";
 		public const string PlayerHitbox = "PlayerHitbox";
-		public const string EnemyHitbox = "EnemyHitbox";
+		public const string PlayerMesh = "PlayerMesh";
 	}
 
 	public class Layers

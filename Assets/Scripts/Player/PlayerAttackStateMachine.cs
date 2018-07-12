@@ -102,7 +102,7 @@ public class PlayerAttackStateMachine : SuperStateMachine
 	#region BasicAttacking
 	void BasicAttacking_EnterState()
 	{
-		playerAnimationManager.ExecuteBasicAttack();
+		//playerAnimationManager.ExecuteBasicAttack();
 		playerAttackManager.BasicAttack(); //Move this to a connecting frame in the animation
 	}
 

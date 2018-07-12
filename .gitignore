@@ -6,6 +6,7 @@
 /Assets/AssetStoreTools*
 /Assets/TestAssets
 /Assets/Plugins
+/Assets/Editor Default Resources
 
 /.vs/
 /.vscode/

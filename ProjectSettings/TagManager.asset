@@ -10,7 +10,8 @@ TagManager:
   - EnemyHitbox
   - PlayerHitbox
   - CameraLookTarget
-  - CameraPositionPivot
+  - Environment
+  - PlayerMesh
   layers:
   - Default
   - TransparentFX

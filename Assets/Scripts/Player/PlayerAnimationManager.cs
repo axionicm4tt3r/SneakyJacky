@@ -2,26 +2,15 @@
 
 public class PlayerAnimationManager : MonoBehaviour {
 
-	private Animator playerUIAnimator;
-	private Animator playerMotionAnimator;
+	private Animator playerAnimator;
 
-	private Animator PlayerUIAnimator
+	private Animator PlayerAnimator
 	{
 		get
 		{
-			if (playerUIAnimator == null)
-				playerUIAnimator = GameObject.FindGameObjectWithTag(Helpers.Tags.PlayerHUD)?.GetComponentInChildren<Animator>();
-			return playerUIAnimator;
-		}
-	}
-
-	private Animator PlayerMotionAnimator
-	{
-		get
-		{
-			if (playerMotionAnimator == null)
-				playerMotionAnimator = GameObject.FindGameObjectWithTag(Helpers.Tags.Player)?.GetComponent<Animator>();
-			return playerMotionAnimator;
+			if (playerAnimator == null)
+				playerAnimator = GameObject.FindGameObjectWithTag(Helpers.Tags.PlayerMesh).GetComponent<Animator>();
+			return playerAnimator;
 		}
 	}
 
@@ -31,12 +20,6 @@ public class PlayerAnimationManager : MonoBehaviour {
 		SetAnimationBool(AnimationCodes.Grappling, false);
 	}
 
-	internal void ExecuteBasicAttack()
-	{
-		SetAnimationTrigger(AnimationCodes.BasicAttacking);
-		SetAnimationInteger(AnimationCodes.BasicAttackIndex, UnityEngine.Random.Range(0, 2));
-	}
-
 	internal void ExecuteGrapple()
 	{
 		SetAnimationBool(AnimationCodes.Grappling, true);
@@ -44,26 +27,26 @@ public class PlayerAnimationManager : MonoBehaviour {
 
 	private void SetAnimationBool(string name, bool value)
 	{
-		PlayerUIAnimator?.SetBool(name, value);
-		//PlayerMotionAnimator?.SetBool(name, value);
+		PlayerAnimator?.SetBool(name, value);
 	}
 
 	private void SetAnimationInteger(string name, int value)
 	{
-		PlayerUIAnimator?.SetInteger(name, value);
-		//PlayerMotionAnimator?.SetInteger(name, value);
+		PlayerAnimator?.SetInteger(name, value);
 	}
 
 	private void SetAnimationTrigger(string name)
 	{
-		PlayerUIAnimator?.SetTrigger(name);
-		//PlayerMotionAnimator?.SetTrigger(name);
+		PlayerAnimator?.SetTrigger(name);
 	}
 
 	private static class AnimationCodes
 	{
+		public const string Sliding = "Sliding";
+		public const string Jumping = "Jumping";
+		public const string Hanging = "Hanging";
+
 		public const string Grappling = "Grappling";
 		public const string BasicAttacking = "BasicAttacking";
-		public const string BasicAttackIndex = "BasicAttackIndex";
 	}
 }

@@ -7,7 +7,9 @@ using System;
 public enum PlayerMovementState
 {
 	Default,
-	Sliding
+	Sliding,
+	Hanging,
+	Climbing
 }
 
 public enum OrientationMethod
@@ -25,7 +27,7 @@ public class PlayerMovementController : BaseCharacterController
 	public float MaxStableCrouchWalkSpeed = 2f;
 	public float StableMovementSharpness = 12;
 	public float OrientationSharpness = 12;
-	public OrientationMethod OrientationMethod = OrientationMethod.TowardsCamera;
+	public OrientationMethod OrientationMethod = OrientationMethod.TowardsMovement;
 
 	[Header("Air Movement")]
 	public float MaxAirMoveSpeed = 5f;

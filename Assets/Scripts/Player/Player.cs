@@ -59,7 +59,7 @@ public class Player : MonoBehaviour
 		movementInputs.CameraRotation = playerCamera.Transform.rotation;
 		movementInputs.Walk = Input.GetButton(InputCodes.Walk);
 		movementInputs.Jump = Input.GetButtonDown(InputCodes.Jump);
-		movementInputs.JumpHold = Input.GetButtonDown(InputCodes.Jump);
+		movementInputs.JumpHold = Input.GetButton(InputCodes.Jump);
 		movementInputs.Crouch = Input.GetButtonDown(InputCodes.Crouch);
 		movementInputs.Slide = Input.GetButtonDown(InputCodes.Slide);
 		movementInputs.SlideHold = Input.GetButton(InputCodes.Slide);
