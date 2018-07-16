@@ -85,8 +85,11 @@ public class PlayerMovementController : BaseCharacterController
 
 	private Player.PlayerMovementInputs _bufferedInputs;
 
+	private PlayerAnimationManager playerAnimationManager;
+
 	private void Start()
 	{
+		playerAnimationManager = GetComponent<PlayerAnimationManager>();
 		TransitionToState(PlayerMovementState.Default);
 
 		if (IgnoredColliders == null)
@@ -122,6 +125,8 @@ public class PlayerMovementController : BaseCharacterController
 					_isSlideStopped = false;
 					_timeSinceStartedSlide = 0f;
 					_timeSinceStopped = 0f;
+
+					playerAnimationManager.SetSlide(true);
 					break;
 				}
 		}
@@ -142,6 +147,8 @@ public class PlayerMovementController : BaseCharacterController
 				{
 					if (!_bufferedInputs.SlideHold)
 						HandleCrouching();
+
+					playerAnimationManager.SetSlide(false);
 					break;
 				}
 
@@ -164,6 +171,7 @@ public class PlayerMovementController : BaseCharacterController
 
 		// Clamp input
 		Vector3 moveInputVector = new Vector3(inputs.MoveAxisRight, 0f, inputs.MoveAxisForward).normalized;
+		playerAnimationManager.SetMovement(moveInputVector.magnitude);
 
 		// Calculate camera direction and rotation on the character plane
 		Vector3 cameraPlanarDirection = Vector3.ProjectOnPlane(inputs.CameraRotation * Vector3.forward, Motor.CharacterUp).normalized;
@@ -577,7 +585,8 @@ public class PlayerMovementController : BaseCharacterController
 			{
 				_isCrouching = true;
 				Motor.SetCapsuleDimensions(0.5f, 1f, 0.5f);
-				MeshRoot.localScale = new Vector3(1f, 0.5f, 1f);
+				//MeshRoot.localScale = new Vector3(1f, 0.5f, 1f);
+				playerAnimationManager.SetCrouch(true);
 			}
 
 			return true;
@@ -609,8 +618,9 @@ public class PlayerMovementController : BaseCharacterController
 			else
 			{
 				// If no obstructions, uncrouch
-				MeshRoot.localScale = new Vector3(1f, 1f, 1f);
+				//MeshRoot.localScale = new Vector3(1f, 1f, 1f);
 				_isCrouching = false;
+				playerAnimationManager.SetCrouch(false);
 			}
 		}
 	}
