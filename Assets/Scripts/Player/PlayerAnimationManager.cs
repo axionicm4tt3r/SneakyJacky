@@ -4,7 +4,7 @@ public class PlayerAnimationManager : MonoBehaviour {
 
 	private Animator playerAnimator;
 
-	private Animator PlayerAnimator
+	public Animator PlayerAnimator
 	{
 		get
 		{
@@ -39,6 +39,16 @@ public class PlayerAnimationManager : MonoBehaviour {
 	internal void SetSlide(bool value)
 	{
 		SetAnimationBool(AnimationCodes.Sliding, value);
+	}
+
+	internal void SetHanging(bool value)
+	{
+		SetAnimationBool(AnimationCodes.Hanging, value);
+	}
+
+	internal void SetClimbingUp(bool value)
+	{
+		SetAnimationBool(AnimationCodes.ClimbingUp, value);
 	}
 
 	internal void ExecuteGrapple()
@@ -77,6 +87,7 @@ public class PlayerAnimationManager : MonoBehaviour {
 		public const string Sliding = "Sliding";
 		public const string Jumping = "Jumping";
 		public const string Hanging = "Hanging";
+		public const string ClimbingUp = "ClimbingUp";
 
 		public const string BasicAttacking = "BasicAttacking";
 		public const string Grappling = "Grappling";

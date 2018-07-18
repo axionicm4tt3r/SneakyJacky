@@ -9,7 +9,7 @@ public enum PlayerMovementState
 	Default,
 	Sliding,
 	Hanging,
-	Climbing
+	ClimbingUp
 }
 
 public enum OrientationMethod
@@ -46,6 +46,9 @@ public class PlayerMovementController : BaseCharacterController
 	public float MaxSlideTime = 0.3f;
 	public float StoppedTime = 0.3f;
 
+	[Header("Climbing")]
+	public float AllowedHangAngle = 30f;
+
 	[Header("Misc")]
 	public List<Collider> IgnoredColliders;
 	public bool OrientTowardsGravity = false;
@@ -63,6 +66,12 @@ public class PlayerMovementController : BaseCharacterController
 	private bool _isSlideStopped;
 	private float _timeSinceStartedSlide = 0;
 	private float _timeSinceStopped = 0;
+
+	private Quaternion _targetHangingRotation = Quaternion.identity;
+	private float _kneeCheckHeight = 0.7f;
+	private float _torsoCheckHeight = 1.4f;
+	private float _headCheckHeight = 2f;
+	private bool _
 
 	private Collider[] _probedColliders = new Collider[8];
 	private Vector3 _moveInputVector;
@@ -83,6 +92,8 @@ public class PlayerMovementController : BaseCharacterController
 	private Vector3 lastInnerNormal = Vector3.zero;
 	private Vector3 lastOuterNormal = Vector3.zero;
 
+	private Vector3 _rootMotionPositionDelta;
+	private Quaternion _rootMotionRotationDelta;
 	private Player.PlayerMovementInputs _bufferedInputs;
 
 	private PlayerAnimationManager playerAnimationManager;
@@ -129,6 +140,17 @@ public class PlayerMovementController : BaseCharacterController
 					playerAnimationManager.SetSlide(true);
 					break;
 				}
+			case PlayerMovementState.Hanging:
+				{
+					playerAnimationManager.SetHanging(true);
+					break;
+				}
+			case PlayerMovementState.ClimbingUp:
+				{
+					//Determine the state we need to go into, based on a boolean or something
+					//playerAnimationManager.SetClimbingUp(true);
+					break;
+				}
 		}
 	}
 
@@ -151,7 +173,16 @@ public class PlayerMovementController : BaseCharacterController
 					playerAnimationManager.SetSlide(false);
 					break;
 				}
-
+			case PlayerMovementState.Hanging:
+				{
+					playerAnimationManager.SetHanging(false);
+					break;
+				}
+			case PlayerMovementState.ClimbingUp:
+				{
+					playerAnimationManager.SetClimbingUp(false);
+					break;
+				}
 		}
 	}
 
@@ -171,7 +202,7 @@ public class PlayerMovementController : BaseCharacterController
 
 		// Clamp input
 		Vector3 moveInputVector = new Vector3(inputs.MoveAxisRight, 0f, inputs.MoveAxisForward).normalized;
-		playerAnimationManager.SetMovement(moveInputVector.magnitude);
+		playerAnimationManager.SetMovement(inputs.Walk ? moveInputVector.magnitude / 2 : moveInputVector.magnitude);
 
 		// Calculate camera direction and rotation on the character plane
 		Vector3 cameraPlanarDirection = Vector3.ProjectOnPlane(inputs.CameraRotation * Vector3.forward, Motor.CharacterUp).normalized;
@@ -213,6 +244,16 @@ public class PlayerMovementController : BaseCharacterController
 						_isWalking = true;
 					else
 						_isWalking = false;
+
+					break;
+				}
+			case PlayerMovementState.Hanging:
+				{
+					if (inputs.Crouch)
+						TransitionToState(PlayerMovementState.Default);
+
+					if (inputs.Jump)
+						TransitionToState(PlayerMovementState.ClimbingUp);
 
 					break;
 				}
@@ -272,6 +313,11 @@ public class PlayerMovementController : BaseCharacterController
 						// Rotate from current up to invert gravity
 						currentRotation = Quaternion.FromToRotation((currentRotation * Vector3.up), -Gravity) * currentRotation;
 					}
+					break;
+				}
+			case PlayerMovementState.Hanging:
+				{
+					currentRotation = _targetHangingRotation;
 					break;
 				}
 		}
@@ -413,6 +459,27 @@ public class PlayerMovementController : BaseCharacterController
 					}
 					break;
 				}
+			case PlayerMovementState.Hanging:
+				{
+					currentVelocity = Vector3.zero;
+					break;
+				}
+			case PlayerMovementState.ClimbingUp:
+				{
+					if (deltaTime > 0)
+					{
+						// The final velocity is the velocity from root motion reoriented on the ground plane
+						currentVelocity = _rootMotionPositionDelta / deltaTime;
+						//currentVelocity = Motor.GetDirectionTangentToSurface(currentVelocity, Motor.GroundingStatus.GroundNormal) * currentVelocity.magnitude;
+					}
+					else
+					{
+						// Prevent division by zero
+						currentVelocity = Vector3.zero;
+					}
+
+					break;
+				}
 		}
 	}
 
@@ -422,6 +489,11 @@ public class PlayerMovementController : BaseCharacterController
 	/// </summary>
 	public override void AfterCharacterUpdate(float deltaTime)
 	{
+		Debug.DrawRay(Motor.TransientPosition, Motor.CharacterForward * 2, Color.magenta);
+		Debug.DrawRay(Motor.TransientPosition + new Vector3(0, _kneeCheckHeight, 0), Motor.CharacterForward * 2, Color.red);
+		Debug.DrawRay(Motor.TransientPosition + new Vector3(0, _torsoCheckHeight, 0), Motor.CharacterForward * 2, Color.green);
+		Debug.DrawRay(Motor.TransientPosition + new Vector3(0, _headCheckHeight, 0), Motor.CharacterForward * 2, Color.blue);
+
 		switch (CurrentPlayerState)
 		{
 			case PlayerMovementState.Default:
@@ -476,6 +548,10 @@ public class PlayerMovementController : BaseCharacterController
 					break;
 				}
 		}
+
+		// Reset root motion deltas
+		_rootMotionPositionDelta = Vector3.zero;
+		_rootMotionRotationDelta = Quaternion.identity;
 	}
 
 	public override void PostGroundingUpdate(float deltaTime)
@@ -513,6 +589,47 @@ public class PlayerMovementController : BaseCharacterController
 	{
 		switch (CurrentPlayerState)
 		{
+			case PlayerMovementState.Default:
+				{
+					//Handle bumping into a wall while holding the jump button. Play the appropriate animation
+					var hitNormalXZ = new Vector3(hitNormal.x, 0, hitNormal.z).normalized;
+					var angleBetweenPlayerAndWall = Vector3.Angle(Motor.CharacterForward, -hitNormalXZ);
+					//Debug.Log($"The angle between player and the wall is {angleBetweenPlayerAndWall}");
+
+					int layerMask = LayerMask.GetMask(Helpers.Layers.Default);
+					var footCast = Physics.Raycast(Motor.TransientPosition, Motor.CharacterForward * 2, Mathf.Infinity, layerMask);
+					var kneeCast = Physics.Raycast(Motor.TransientPosition + new Vector3(0, _kneeCheckHeight, 0), Motor.CharacterForward * 2, Mathf.Infinity, layerMask);
+					var torsoCast = Physics.Raycast(Motor.TransientPosition + new Vector3(0, _torsoCheckHeight, 0), Motor.CharacterForward * 2, Mathf.Infinity, layerMask);
+					var headCast = Physics.Raycast(Motor.TransientPosition + new Vector3(0, _headCheckHeight, 0), Motor.CharacterForward * 2, Mathf.Infinity, layerMask);
+
+					if (_bufferedInputs.JumpHold && angleBetweenPlayerAndWall <= AllowedHangAngle)
+					{
+						if (footCast && kneeCast && torsoCast && headCast)
+						{
+							//Can't do anything
+							//Debug.Log($"Can't do anything while trying to hang");
+						}
+						else if (footCast && kneeCast && torsoCast && !headCast)
+						{
+							//Debug.Log($"Will go into hanging stance");
+							_targetHangingRotation = Quaternion.LookRotation(-hitNormalXZ, Motor.CharacterUp);
+							TransitionToState(PlayerMovementState.Hanging);
+						}
+						else if (footCast && kneeCast && !torsoCast && !headCast)
+						{
+							//Debug.Log($"Will scale the low wall");
+							_targetHangingRotation = Quaternion.LookRotation(-hitNormalXZ, Motor.CharacterUp);
+							TransitionToState(PlayerMovementState.ClimbingUp);
+						}
+						else if (footCast && !kneeCast && !torsoCast && !headCast)
+						{
+							//Debug.Log($"Will step up");
+							_targetHangingRotation = Quaternion.LookRotation(-hitNormalXZ, Motor.CharacterUp);
+							TransitionToState(PlayerMovementState.ClimbingUp);
+						}
+					}
+					break;
+				}
 			case PlayerMovementState.Sliding:
 				{
 					// Detect being stopped by obstructions
@@ -584,7 +701,7 @@ public class PlayerMovementController : BaseCharacterController
 			if (!_isCrouching)
 			{
 				_isCrouching = true;
-				Motor.SetCapsuleDimensions(0.5f, 1f, 0.5f);
+				Motor.SetCapsuleDimensions(0.3f, 0.9f, 0.45f);
 				//MeshRoot.localScale = new Vector3(1f, 0.5f, 1f);
 				playerAnimationManager.SetCrouch(true);
 			}
@@ -604,7 +721,7 @@ public class PlayerMovementController : BaseCharacterController
 		if (_isCrouching && !_shouldBeCrouching)
 		{
 			// Do an overlap test with the character's standing height to see if there are any obstructions
-			Motor.SetCapsuleDimensions(0.5f, 2f, 1f);
+			Motor.SetCapsuleDimensions(0.3f, 1.8f, 0.9f);
 			if (Motor.CharacterOverlap(
 				Motor.TransientPosition,
 				Motor.TransientRotation,
@@ -613,7 +730,7 @@ public class PlayerMovementController : BaseCharacterController
 				QueryTriggerInteraction.Ignore) > 0)
 			{
 				// If obstructions, just stick to crouching dimensions
-				Motor.SetCapsuleDimensions(0.5f, 1f, 0.5f);
+				Motor.SetCapsuleDimensions(0.3f, 0.9f, 0.45f);
 			}
 			else
 			{
@@ -623,5 +740,12 @@ public class PlayerMovementController : BaseCharacterController
 				playerAnimationManager.SetCrouch(false);
 			}
 		}
+	}
+
+	private void OnAnimatorMove()
+	{
+		// Accumulate rootMotion deltas between character updates 
+		_rootMotionPositionDelta += playerAnimationManager.PlayerAnimator.deltaPosition;
+		_rootMotionRotationDelta = playerAnimationManager.PlayerAnimator.deltaRotation * _rootMotionRotationDelta;
 	}
 }
