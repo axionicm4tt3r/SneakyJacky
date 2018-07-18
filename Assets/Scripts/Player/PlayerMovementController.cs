@@ -67,11 +67,17 @@ public class PlayerMovementController : BaseCharacterController
 	private float _timeSinceStartedSlide = 0;
 	private float _timeSinceStopped = 0;
 
+	private Vector3 _targetHangingPosition = Vector3.zero;
 	private Quaternion _targetHangingRotation = Quaternion.identity;
+	private float _forwardMoveDistance = 0.6f;
 	private float _kneeCheckHeight = 0.7f;
 	private float _torsoCheckHeight = 1.4f;
 	private float _headCheckHeight = 2f;
-	private bool _
+	private bool _hangingFootCheck;
+	private bool _hangingKneeCheck;
+	private bool _hangingTorsoCheck;
+	private bool _hangingHeadCheck;
+	private bool _requestedClimb;
 
 	private Collider[] _probedColliders = new Collider[8];
 	private Vector3 _moveInputVector;
@@ -149,6 +155,20 @@ public class PlayerMovementController : BaseCharacterController
 				{
 					//Determine the state we need to go into, based on a boolean or something
 					//playerAnimationManager.SetClimbingUp(true);
+					
+					if (_requestedClimb)
+					{
+
+					}
+					else if (_hangingFootCheck && _hangingKneeCheck && !_hangingTorsoCheck && !_hangingHeadCheck)
+					{
+
+					}
+					else if (_hangingFootCheck && !_hangingKneeCheck && !_hangingTorsoCheck && !_hangingHeadCheck)
+					{
+
+					}
+
 					break;
 				}
 		}
@@ -175,11 +195,23 @@ public class PlayerMovementController : BaseCharacterController
 				}
 			case PlayerMovementState.Hanging:
 				{
+					if (toState != PlayerMovementState.ClimbingUp)
+					{
+						_targetHangingPosition = Vector3.zero;
+						_targetHangingRotation = Quaternion.identity;
+					}
 					playerAnimationManager.SetHanging(false);
 					break;
 				}
 			case PlayerMovementState.ClimbingUp:
 				{
+					_targetHangingPosition = Vector3.zero;
+					_targetHangingRotation = Quaternion.identity;
+					_hangingFootCheck = false;
+					_hangingKneeCheck = false;
+					_hangingTorsoCheck = false;
+					_hangingHeadCheck = false;
+					_requestedClimb = false;
 					playerAnimationManager.SetClimbingUp(false);
 					break;
 				}
@@ -253,7 +285,10 @@ public class PlayerMovementController : BaseCharacterController
 						TransitionToState(PlayerMovementState.Default);
 
 					if (inputs.Jump)
+					{
+						_requestedClimb = true;
 						TransitionToState(PlayerMovementState.ClimbingUp);
+					}
 
 					break;
 				}
@@ -489,10 +524,11 @@ public class PlayerMovementController : BaseCharacterController
 	/// </summary>
 	public override void AfterCharacterUpdate(float deltaTime)
 	{
-		Debug.DrawRay(Motor.TransientPosition, Motor.CharacterForward * 2, Color.magenta);
-		Debug.DrawRay(Motor.TransientPosition + new Vector3(0, _kneeCheckHeight, 0), Motor.CharacterForward * 2, Color.red);
-		Debug.DrawRay(Motor.TransientPosition + new Vector3(0, _torsoCheckHeight, 0), Motor.CharacterForward * 2, Color.green);
-		Debug.DrawRay(Motor.TransientPosition + new Vector3(0, _headCheckHeight, 0), Motor.CharacterForward * 2, Color.blue);
+		Debug.DrawRay(Motor.TransientPosition, Motor.CharacterForward * _forwardMoveDistance, Color.magenta);
+		Debug.DrawRay(Motor.TransientPosition + new Vector3(0, _kneeCheckHeight, 0), Motor.CharacterForward * _forwardMoveDistance, Color.red);
+		Debug.DrawRay(Motor.TransientPosition + new Vector3(0, _torsoCheckHeight, 0), Motor.CharacterForward * _forwardMoveDistance, Color.green);
+		Debug.DrawRay(Motor.TransientPosition + new Vector3(0, _headCheckHeight, 0), Motor.CharacterForward * _forwardMoveDistance, Color.blue);
+		Debug.DrawRay(Motor.TransientPosition + new Vector3(0, _headCheckHeight, 0) + Motor.CharacterForward * _forwardMoveDistance, -Motor.CharacterUp * 1.8f, Color.cyan);
 
 		switch (CurrentPlayerState)
 		{
@@ -591,39 +627,42 @@ public class PlayerMovementController : BaseCharacterController
 		{
 			case PlayerMovementState.Default:
 				{
-					//Handle bumping into a wall while holding the jump button. Play the appropriate animation
 					var hitNormalXZ = new Vector3(hitNormal.x, 0, hitNormal.z).normalized;
 					var angleBetweenPlayerAndWall = Vector3.Angle(Motor.CharacterForward, -hitNormalXZ);
-					//Debug.Log($"The angle between player and the wall is {angleBetweenPlayerAndWall}");
 
 					int layerMask = LayerMask.GetMask(Helpers.Layers.Default);
-					var footCast = Physics.Raycast(Motor.TransientPosition, Motor.CharacterForward * 2, Mathf.Infinity, layerMask);
-					var kneeCast = Physics.Raycast(Motor.TransientPosition + new Vector3(0, _kneeCheckHeight, 0), Motor.CharacterForward * 2, Mathf.Infinity, layerMask);
-					var torsoCast = Physics.Raycast(Motor.TransientPosition + new Vector3(0, _torsoCheckHeight, 0), Motor.CharacterForward * 2, Mathf.Infinity, layerMask);
-					var headCast = Physics.Raycast(Motor.TransientPosition + new Vector3(0, _headCheckHeight, 0), Motor.CharacterForward * 2, Mathf.Infinity, layerMask);
+					_hangingFootCheck = Physics.Raycast(Motor.TransientPosition, Motor.CharacterForward * _forwardMoveDistance, Mathf.Infinity, layerMask);
+					_hangingKneeCheck = Physics.Raycast(Motor.TransientPosition + new Vector3(0, _kneeCheckHeight, 0), Motor.CharacterForward * _forwardMoveDistance, Mathf.Infinity, layerMask);
+					_hangingTorsoCheck = Physics.Raycast(Motor.TransientPosition + new Vector3(0, _torsoCheckHeight, 0), Motor.CharacterForward * _forwardMoveDistance, Mathf.Infinity, layerMask);
+					_hangingHeadCheck = Physics.Raycast(Motor.TransientPosition + new Vector3(0, _headCheckHeight, 0), Motor.CharacterForward * _forwardMoveDistance, Mathf.Infinity, layerMask);
 
 					if (_bufferedInputs.JumpHold && angleBetweenPlayerAndWall <= AllowedHangAngle)
 					{
-						if (footCast && kneeCast && torsoCast && headCast)
-						{
-							//Can't do anything
-							//Debug.Log($"Can't do anything while trying to hang");
-						}
-						else if (footCast && kneeCast && torsoCast && !headCast)
+						if (_hangingFootCheck && _hangingKneeCheck && _hangingTorsoCheck && _hangingHeadCheck)
+						{ }
+						else if (_hangingFootCheck && _hangingKneeCheck && _hangingTorsoCheck && !_hangingHeadCheck)
 						{
 							//Debug.Log($"Will go into hanging stance");
+							//Handle _targetHangingPosition. Raycast down, check height for player in crouching or standing position
+							RaycastHit hit;
+							Physics.Raycast(Motor.TransientPosition + new Vector3(0, _headCheckHeight, 0) + Motor.CharacterForward * _forwardMoveDistance, -Motor.CharacterUp * 1.8f, out hit, Mathf.Infinity, layerMask);
+							_targetHangingPosition = hit.point;
 							_targetHangingRotation = Quaternion.LookRotation(-hitNormalXZ, Motor.CharacterUp);
 							TransitionToState(PlayerMovementState.Hanging);
 						}
-						else if (footCast && kneeCast && !torsoCast && !headCast)
+						else if (_hangingFootCheck && _hangingKneeCheck && !_hangingTorsoCheck && !_hangingHeadCheck)
 						{
-							//Debug.Log($"Will scale the low wall");
+							RaycastHit hit;
+							Physics.Raycast(Motor.TransientPosition + new Vector3(0, _headCheckHeight, 0) + Motor.CharacterForward * _forwardMoveDistance, -Motor.CharacterUp * 1.8f, out hit, Mathf.Infinity, layerMask);
+							_targetHangingPosition = hit.point;
 							_targetHangingRotation = Quaternion.LookRotation(-hitNormalXZ, Motor.CharacterUp);
 							TransitionToState(PlayerMovementState.ClimbingUp);
 						}
-						else if (footCast && !kneeCast && !torsoCast && !headCast)
+						else if (_hangingFootCheck && !_hangingKneeCheck && !_hangingTorsoCheck && !_hangingHeadCheck)
 						{
-							//Debug.Log($"Will step up");
+							RaycastHit hit;
+							Physics.Raycast(Motor.TransientPosition + new Vector3(0, _headCheckHeight, 0) + Motor.CharacterForward * _forwardMoveDistance, -Motor.CharacterUp * 1.8f, out hit, Mathf.Infinity, layerMask);
+							_targetHangingPosition = hit.point;
 							_targetHangingRotation = Quaternion.LookRotation(-hitNormalXZ, Motor.CharacterUp);
 							TransitionToState(PlayerMovementState.ClimbingUp);
 						}
@@ -702,7 +741,6 @@ public class PlayerMovementController : BaseCharacterController
 			{
 				_isCrouching = true;
 				Motor.SetCapsuleDimensions(0.3f, 0.9f, 0.45f);
-				//MeshRoot.localScale = new Vector3(1f, 0.5f, 1f);
 				playerAnimationManager.SetCrouch(true);
 			}
 
@@ -735,7 +773,6 @@ public class PlayerMovementController : BaseCharacterController
 			else
 			{
 				// If no obstructions, uncrouch
-				//MeshRoot.localScale = new Vector3(1f, 1f, 1f);
 				_isCrouching = false;
 				playerAnimationManager.SetCrouch(false);
 			}
