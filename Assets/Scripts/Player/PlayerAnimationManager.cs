@@ -51,6 +51,16 @@ public class PlayerAnimationManager : MonoBehaviour {
 		SetAnimationBool(AnimationCodes.ClimbingUp, value);
 	}
 
+	internal void SetVaulting(bool value)
+	{
+		SetAnimationBool(AnimationCodes.Vaulting, value);
+	}
+
+	internal void SetSteppingUp(bool value)
+	{
+		SetAnimationBool(AnimationCodes.SteppingUp, value);
+	}
+
 	internal void ExecuteGrapple()
 	{
 		SetAnimationBool(AnimationCodes.Grappling, true);
@@ -88,6 +98,8 @@ public class PlayerAnimationManager : MonoBehaviour {
 		public const string Jumping = "Jumping";
 		public const string Hanging = "Hanging";
 		public const string ClimbingUp = "ClimbingUp";
+		public const string Vaulting = "Vaulting";
+		public const string SteppingUp = "SteppingUp";
 
 		public const string BasicAttacking = "BasicAttacking";
 		public const string Grappling = "Grappling";
