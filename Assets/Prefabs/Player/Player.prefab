@@ -2003,7 +2003,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1615068326187380}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -3.96, y: 2.73, z: 17.22}
+  m_LocalPosition: {x: 0, y: 1, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 4502202134329320}
@@ -2688,17 +2688,17 @@ MonoBehaviour:
   MinRequiredStepDepth: 0
   MaxStableSlopeAngle: 60
   MaxStableDistanceFromLedge: 0
-  PreventSnappingOnLedges: 0
+  PreventSnappingOnLedges: 1
   MaxStableDenivelationAngle: 180
   SimulatedMass: 0.2
-  RigidbodyInteractionType: 0
+  RigidbodyInteractionType: 2
   PreserveAttachedRigidbodyMomentum: 1
   HasPlanarConstraint: 0
   PlanarConstraintAxis: {x: 0, y: 0, z: 1}
   StepHandling: 2
-  LedgeHandling: 1
+  LedgeHandling: 0
   InteractiveRigidbodyHandling: 1
-  SafeMovement: 1
+  SafeMovement: 0
 --- !u!114 &114353346805848544
 MonoBehaviour:
   m_ObjectHideFlags: 1

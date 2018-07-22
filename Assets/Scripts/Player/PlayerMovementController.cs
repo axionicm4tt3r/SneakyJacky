@@ -77,12 +77,13 @@ public class PlayerMovementController : BaseCharacterController
 	private float _anchoringTimer = 0f;
 	private float _forwardMoveDistance = 0.6f;
 	private float _kneeCheckHeight = 0.7f;
-	private float _torsoCheckHeight = 1.4f;
+	private float _torsoCheckHeight = 1.3f;
 	private float _headCheckHeight = 2f;
 	private bool _hangingFootCheck;
 	private bool _hangingKneeCheck;
 	private bool _hangingTorsoCheck;
 	private bool _hangingHeadCheck;
+	private bool _requestedFall;
 	private bool _requestedClimb;
 	private bool _shouldVault;
 	private bool _shouldStepUp;
@@ -151,11 +152,15 @@ public class PlayerMovementController : BaseCharacterController
 					_timeSinceStartedSlide = 0f;
 					_timeSinceStopped = 0f;
 
+					HandleCrouching();
 					playerAnimationManager.SetSlide(true);
 					break;
 				}
 			case PlayerMovementState.Hanging:
 				{
+					if (_shouldBeCrouching)
+						HandleCrouching();
+
 					playerAnimationManager.SetHanging(true);
 					break;
 				}
@@ -200,7 +205,7 @@ public class PlayerMovementController : BaseCharacterController
 				}
 			case PlayerMovementState.Sliding:
 				{
-					if (!_bufferedInputs.SlideHold)
+					if (Motor.GroundingStatus.IsStableOnGround &&  _bufferedInputs.SlideHold)
 						HandleCrouching();
 
 					playerAnimationManager.SetSlide(false);
@@ -299,7 +304,10 @@ public class PlayerMovementController : BaseCharacterController
 			case PlayerMovementState.Hanging:
 				{
 					if (inputs.Crouch)
+					{
+						_requestedFall = true;
 						TransitionToState(PlayerMovementState.Default);
+					}
 
 					if (inputs.Jump)
 					{
@@ -656,13 +664,13 @@ public class PlayerMovementController : BaseCharacterController
 					var hitNormalXZ = new Vector3(hitNormal.x, 0, hitNormal.z).normalized;
 					var angleBetweenPlayerAndWall = Vector3.Angle(Motor.CharacterForward, -hitNormalXZ);
 
-					if (!Motor.GroundingStatus.IsStableOnGround && _bufferedInputs.JumpHold && angleBetweenPlayerAndWall <= AllowedHangAngle)
+					if (!Motor.GroundingStatus.IsStableOnGround && !_requestedFall && angleBetweenPlayerAndWall <= AllowedHangAngle && hitNormal.y <= 0.1f)
 					{
 						int layerMask = LayerMask.GetMask(Helpers.Layers.Default);
-						_hangingFootCheck = Physics.Raycast(Motor.TransientPosition, Motor.CharacterForward * _forwardMoveDistance, Mathf.Infinity, layerMask);
-						_hangingKneeCheck = Physics.Raycast(Motor.TransientPosition + new Vector3(0, _kneeCheckHeight, 0), Motor.CharacterForward * _forwardMoveDistance, Mathf.Infinity, layerMask);
-						_hangingTorsoCheck = Physics.Raycast(Motor.TransientPosition + new Vector3(0, _torsoCheckHeight, 0), Motor.CharacterForward * _forwardMoveDistance, Mathf.Infinity, layerMask);
-						_hangingHeadCheck = Physics.Raycast(Motor.TransientPosition + new Vector3(0, _headCheckHeight, 0), Motor.CharacterForward * _forwardMoveDistance, Mathf.Infinity, layerMask);
+						_hangingFootCheck = Physics.Raycast(Motor.TransientPosition, Motor.CharacterForward * _forwardMoveDistance, _forwardMoveDistance, layerMask);
+						_hangingKneeCheck = Physics.Raycast(Motor.TransientPosition + new Vector3(0, _kneeCheckHeight, 0), Motor.CharacterForward * _forwardMoveDistance, _forwardMoveDistance, layerMask);
+						_hangingTorsoCheck = Physics.Raycast(Motor.TransientPosition + new Vector3(0, _torsoCheckHeight, 0), Motor.CharacterForward * _forwardMoveDistance, _forwardMoveDistance, layerMask);
+						_hangingHeadCheck = Physics.Raycast(Motor.TransientPosition + new Vector3(0, _headCheckHeight, 0), Motor.CharacterForward * _forwardMoveDistance, _forwardMoveDistance, layerMask);
 
 						RaycastHit hit;
 						Physics.Raycast(Motor.TransientPosition + new Vector3(0, _headCheckHeight, 0) + -hitNormalXZ * _forwardMoveDistance, -Motor.CharacterUp * 1.8f, out hit, Mathf.Infinity, layerMask);
@@ -737,6 +745,8 @@ public class PlayerMovementController : BaseCharacterController
 						_timeSinceLastLanded = 0f;
 						_mustRecoverFromJump = true;
 					}
+
+					_requestedFall = false;
 
 					break;
 				}
