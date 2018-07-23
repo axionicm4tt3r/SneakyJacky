@@ -2798,6 +2798,7 @@ MonoBehaviour:
   StepUpDuration: 0.25
   VaultDuration: 0.6
   ClimbUpDuration: 1.2
+  ClimbUpPositionFactor: 0.5
   IgnoredColliders: []
   OrientTowardsGravity: 0
   Gravity: {x: 0, y: -20, z: 0}
@@ -2935,7 +2936,7 @@ SkinnedMeshRenderer:
   - {fileID: 4578661421856540}
   - {fileID: 4069952414296902}
   m_BlendShapeWeights: []
-  m_RootBone: {fileID: 4905866366135028}
+  m_RootBone: {fileID: 4837145475592096}
   m_AABB:
     m_Center: {x: 0.00021746755, y: -0.17603397, z: -0.08077258}
     m_Extent: {x: 0.916929, y: 0.9591789, z: 0.3370002}

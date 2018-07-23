@@ -8955,36 +8955,32 @@ Prefab:
       propertyPath: m_RootOrder
       value: 4
       objectReference: {fileID: 0}
-    - target: {fileID: 114289298242176550, guid: cf90af9d33b61e8409de30f594c3a41d,
-        type: 2}
-      propertyPath: PlanarConstraintAxis.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 114289298242176550, guid: cf90af9d33b61e8409de30f594c3a41d,
-        type: 2}
-      propertyPath: HasPlanarConstraint
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 114289298242176550, guid: cf90af9d33b61e8409de30f594c3a41d,
-        type: 2}
-      propertyPath: LedgeHandling
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 114289298242176550, guid: cf90af9d33b61e8409de30f594c3a41d,
-        type: 2}
-      propertyPath: SafeMovement
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 114289298242176550, guid: cf90af9d33b61e8409de30f594c3a41d,
-        type: 2}
-      propertyPath: RigidbodyInteractionType
-      value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: 114289298242176550, guid: cf90af9d33b61e8409de30f594c3a41d,
-        type: 2}
-      propertyPath: PreventSnappingOnLedges
+    - target: {fileID: 4925238620685692, guid: cf90af9d33b61e8409de30f594c3a41d, type: 2}
+      propertyPath: m_RootOrder
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 4837145475592096, guid: cf90af9d33b61e8409de30f594c3a41d, type: 2}
+      propertyPath: m_RootOrder
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 4502202134329320, guid: cf90af9d33b61e8409de30f594c3a41d, type: 2}
+      propertyPath: m_RootOrder
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4607234533902070, guid: cf90af9d33b61e8409de30f594c3a41d, type: 2}
+      propertyPath: m_RootOrder
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 137095946946413446, guid: cf90af9d33b61e8409de30f594c3a41d,
+        type: 2}
+      propertyPath: m_SkinnedMotionVectors
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 137095946946413446, guid: cf90af9d33b61e8409de30f594c3a41d,
+        type: 2}
+      propertyPath: m_RootBone
+      value: 
+      objectReference: {fileID: 1796633263}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: cf90af9d33b61e8409de30f594c3a41d, type: 2}
   m_IsPrefabParent: 0
@@ -9758,6 +9754,11 @@ Transform:
   m_Father: {fileID: 1799468590}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!4 &1796633263 stripped
+Transform:
+  m_PrefabParentObject: {fileID: 4837145475592096, guid: cf90af9d33b61e8409de30f594c3a41d,
+    type: 2}
+  m_PrefabInternal: {fileID: 1171332940}
 --- !u!1 &1799468589
 GameObject:
   m_ObjectHideFlags: 0

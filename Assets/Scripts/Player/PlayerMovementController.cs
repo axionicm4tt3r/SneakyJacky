@@ -51,6 +51,7 @@ public class PlayerMovementController : BaseCharacterController
 	public float StepUpDuration = 0.25f;
 	public float VaultDuration = 0.6f;
 	public float ClimbUpDuration = 1.2f;
+	public float ClimbUpPositionFactor = 0.5f;
 
 	[Header("Misc")]
 	public List<Collider> IgnoredColliders;
@@ -75,14 +76,10 @@ public class PlayerMovementController : BaseCharacterController
 	private Vector3 _targetClimbUpPosition = Vector3.zero;
 	private float _anchoringDuration = 0.25f;
 	private float _anchoringTimer = 0f;
-	private float _forwardMoveDistance = 0.6f;
+	private float _forwardMoveDistance = 0.7f;
 	private float _kneeCheckHeight = 0.7f;
 	private float _torsoCheckHeight = 1.3f;
 	private float _headCheckHeight = 2f;
-	private bool _hangingFootCheck;
-	private bool _hangingKneeCheck;
-	private bool _hangingTorsoCheck;
-	private bool _hangingHeadCheck;
 	private bool _requestedFall;
 	private bool _requestedClimb;
 	private bool _shouldVault;
@@ -167,7 +164,6 @@ public class PlayerMovementController : BaseCharacterController
 			case PlayerMovementState.ClimbingUp:
 				{
 					_anchoringTimer = 0f;
-					_startingClimbUpPosition = Motor.TransientPosition;
 
 					if (_requestedClimb)
 					{
@@ -522,7 +518,7 @@ public class PlayerMovementController : BaseCharacterController
 				}
 			case PlayerMovementState.Hanging:
 				{
-					currentVelocity = Motor.GetVelocityForMovePosition(Motor.TransientPosition, new Vector3(Motor.TransientPosition.x, _targetClimbUpPosition.y - 1.8f, Motor.TransientPosition.z), deltaTime);
+					currentVelocity = Motor.GetVelocityForMovePosition(Motor.TransientPosition, new Vector3(_startingClimbUpPosition.x, _targetClimbUpPosition.y - 1.8f, _startingClimbUpPosition.z), deltaTime);
 					break;
 				}
 			case PlayerMovementState.ClimbingUp:
@@ -530,8 +526,9 @@ public class PlayerMovementController : BaseCharacterController
 					var anchoringTimerRatio = Mathf.Clamp01(_anchoringTimer / _anchoringDuration);
 
 					Vector3 tempPosition = Vector3.Lerp(_startingClimbUpPosition, _targetClimbUpPosition, anchoringTimerRatio);
-
-					if (anchoringTimerRatio >= 0.8 && Vector3.Distance(tempPosition, _targetClimbUpPosition) > (Vector3.Distance(Motor.TransientPosition, _targetClimbUpPosition)))
+					if (!_shouldStepUp && anchoringTimerRatio <= 0.02f)
+						currentVelocity = Motor.GetVelocityForMovePosition(Motor.TransientPosition, _startingClimbUpPosition, deltaTime);
+					else if (_shouldStepUp || anchoringTimerRatio >= 0.85 && Vector3.Distance(tempPosition, _targetClimbUpPosition) > (Vector3.Distance(Motor.TransientPosition, _targetClimbUpPosition)))
 						currentVelocity = Motor.GetVelocityForMovePosition(Motor.TransientPosition, _targetClimbUpPosition, deltaTime);
 					else
 						currentVelocity = Motor.GetVelocityForMovePosition(Motor.TransientPosition, tempPosition, deltaTime);
@@ -547,12 +544,6 @@ public class PlayerMovementController : BaseCharacterController
 	/// </summary>
 	public override void AfterCharacterUpdate(float deltaTime)
 	{
-		Debug.DrawRay(Motor.TransientPosition, Motor.CharacterForward * _forwardMoveDistance, Color.magenta);
-		Debug.DrawRay(Motor.TransientPosition + new Vector3(0, _kneeCheckHeight, 0), Motor.CharacterForward * _forwardMoveDistance, Color.red);
-		Debug.DrawRay(Motor.TransientPosition + new Vector3(0, _torsoCheckHeight, 0), Motor.CharacterForward * _forwardMoveDistance, Color.green);
-		Debug.DrawRay(Motor.TransientPosition + new Vector3(0, _headCheckHeight, 0), Motor.CharacterForward * _forwardMoveDistance, Color.blue);
-		Debug.DrawRay(Motor.TransientPosition + new Vector3(0, _headCheckHeight, 0) + Motor.CharacterForward * _forwardMoveDistance, -Motor.CharacterUp * 1.8f, Color.cyan);
-
 		switch (CurrentPlayerState)
 		{
 			case PlayerMovementState.Default:
@@ -586,6 +577,9 @@ public class PlayerMovementController : BaseCharacterController
 								_mustRecoverFromJump = false;
 						}
 					}
+
+					// Handle wall climbing checks
+					HandleWallClimbing();
 
 					// Handle uncrouching
 					HandleUncrouching();
@@ -659,47 +653,6 @@ public class PlayerMovementController : BaseCharacterController
 	{
 		switch (CurrentPlayerState)
 		{
-			case PlayerMovementState.Default:
-				{
-					var hitNormalXZ = new Vector3(hitNormal.x, 0, hitNormal.z).normalized;
-					var angleBetweenPlayerAndWall = Vector3.Angle(Motor.CharacterForward, -hitNormalXZ);
-
-					if (!Motor.GroundingStatus.IsStableOnGround && !_requestedFall && angleBetweenPlayerAndWall <= AllowedHangAngle && hitNormal.y <= 0.1f)
-					{
-						int layerMask = LayerMask.GetMask(Helpers.Layers.Default);
-						_hangingFootCheck = Physics.Raycast(Motor.TransientPosition, Motor.CharacterForward * _forwardMoveDistance, _forwardMoveDistance, layerMask);
-						_hangingKneeCheck = Physics.Raycast(Motor.TransientPosition + new Vector3(0, _kneeCheckHeight, 0), Motor.CharacterForward * _forwardMoveDistance, _forwardMoveDistance, layerMask);
-						_hangingTorsoCheck = Physics.Raycast(Motor.TransientPosition + new Vector3(0, _torsoCheckHeight, 0), Motor.CharacterForward * _forwardMoveDistance, _forwardMoveDistance, layerMask);
-						_hangingHeadCheck = Physics.Raycast(Motor.TransientPosition + new Vector3(0, _headCheckHeight, 0), Motor.CharacterForward * _forwardMoveDistance, _forwardMoveDistance, layerMask);
-
-						RaycastHit hit;
-						Physics.Raycast(Motor.TransientPosition + new Vector3(0, _headCheckHeight, 0) + -hitNormalXZ * _forwardMoveDistance, -Motor.CharacterUp * 1.8f, out hit, Mathf.Infinity, layerMask);
-
-						if (_hangingFootCheck && _hangingKneeCheck && _hangingTorsoCheck && _hangingHeadCheck)
-						{ }
-						else if (_hangingFootCheck && _hangingKneeCheck && _hangingTorsoCheck && !_hangingHeadCheck)
-						{
-							_targetClimbUpPosition = hit.point + new Vector3(0,0.02f,0);
-							_targetHangingRotation = Quaternion.LookRotation(-hitNormalXZ, Motor.CharacterUp);
-							TransitionToState(PlayerMovementState.Hanging);
-						}
-						else if (_hangingFootCheck && _hangingKneeCheck && !_hangingTorsoCheck && !_hangingHeadCheck)
-						{
-							_targetClimbUpPosition = hit.point + new Vector3(0, 0.02f, 0);
-							_targetHangingRotation = Quaternion.LookRotation(-hitNormalXZ, Motor.CharacterUp);
-							_shouldVault = true;
-							TransitionToState(PlayerMovementState.ClimbingUp);
-						}
-						else if (_hangingFootCheck && !_hangingKneeCheck && !_hangingTorsoCheck && !_hangingHeadCheck)
-						{
-							_targetClimbUpPosition = hit.point + new Vector3(0, 0.02f, 0);
-							_targetHangingRotation = Quaternion.LookRotation(-hitNormalXZ, Motor.CharacterUp);
-							_shouldStepUp = true;
-							TransitionToState(PlayerMovementState.ClimbingUp);
-						}
-					}
-					break;
-				}
 			case PlayerMovementState.Sliding:
 				{
 					// Detect being stopped by obstructions
@@ -710,12 +663,6 @@ public class PlayerMovementController : BaseCharacterController
 					break;
 				}
 		}
-	}
-
-	private void OnDrawGizmos()
-	{
-		Gizmos.color = Color.red;
-		Gizmos.DrawWireSphere(_targetClimbUpPosition, 0.1f);
 	}
 
 	public void AddVelocity(Vector3 velocity)
@@ -818,6 +765,62 @@ public class PlayerMovementController : BaseCharacterController
 		}
 	}
 
+	private void HandleWallClimbing()
+	{
+		//Debug.DrawRay(Motor.TransientPosition + new Vector3(0, _headCheckHeight, 0) + Motor.CharacterForward * _forwardMoveDistance, -Motor.CharacterUp * _headCheckHeight, Color.cyan);
+		//Debug.DrawRay(Motor.TransientPosition + new Vector3(0, 1.8f, 0), Motor.CharacterForward * _forwardMoveDistance, Color.white);
+
+		//Debug.DrawRay(Motor.TransientPosition, Motor.CharacterForward * _forwardMoveDistance, Color.magenta);
+		//Debug.DrawRay(Motor.TransientPosition + new Vector3(0, _kneeCheckHeight, 0), Motor.CharacterForward * _forwardMoveDistance, Color.red);
+		//Debug.DrawRay(Motor.TransientPosition + new Vector3(0, _torsoCheckHeight, 0), Motor.CharacterForward * _forwardMoveDistance, Color.green);
+		//Debug.DrawRay(Motor.TransientPosition + new Vector3(0, _headCheckHeight, 0), Motor.CharacterForward * _forwardMoveDistance, Color.blue);
+
+		int layerMask = LayerMask.GetMask(Helpers.Layers.Default);
+		RaycastHit hit;
+		var hitPoint = Physics.Raycast(Motor.TransientPosition + new Vector3(0, _headCheckHeight, 0) + Motor.CharacterForward * _forwardMoveDistance, -Motor.CharacterUp, out hit, 1.8f, layerMask);
+
+		if (!Motor.GroundingStatus.IsStableOnGround && !_requestedFall && hitPoint)
+		{
+			RaycastHit footHit, kneeHit, torsoHit;
+			var _hangingHeadCheck = Physics.Raycast(Motor.TransientPosition + new Vector3(0, _headCheckHeight, 0), Motor.CharacterForward * _forwardMoveDistance, _forwardMoveDistance, layerMask);
+			var _hangingTorsoCheck = Physics.Raycast(Motor.TransientPosition + new Vector3(0, _torsoCheckHeight, 0), Motor.CharacterForward * _forwardMoveDistance, out torsoHit, _forwardMoveDistance, layerMask);
+			var _hangingKneeCheck = Physics.Raycast(Motor.TransientPosition + new Vector3(0, _kneeCheckHeight, 0), Motor.CharacterForward * _forwardMoveDistance, out kneeHit, _forwardMoveDistance, layerMask);
+			var _hangingFootCheck = Physics.Raycast(Motor.TransientPosition, Motor.CharacterForward * _forwardMoveDistance, out footHit, _forwardMoveDistance, layerMask);
+			//Debug.DrawRay(torsoHit.point, torsoHit.normal * _forwardMoveDistance, Color.black, 2f);
+			//Debug.DrawRay(kneeHit.point, kneeHit.normal * _forwardMoveDistance, Color.black, 2f);
+			//Debug.DrawRay(footHit.point, footHit.normal * _forwardMoveDistance, Color.black, 2f);
+			var torsoHitNormalXZ = new Vector3(torsoHit.normal.x, 0, torsoHit.normal.z);
+			var kneeHitNormalXZ = new Vector3(kneeHit.normal.x, 0, kneeHit.normal.z);
+			var footHitNormalXZ = new Vector3(footHit.normal.x, 0, footHit.normal.z);
+
+			if (_hangingFootCheck && _hangingKneeCheck && _hangingTorsoCheck && _hangingHeadCheck)
+			{ }
+			else if (_hangingFootCheck && _hangingKneeCheck && _hangingTorsoCheck && !_hangingHeadCheck && torsoHit.normal.y <= 0.1f)
+			{
+				_startingClimbUpPosition = new Vector3(torsoHit.point.x, Motor.TransientPosition.y, torsoHit.point.z);
+				_targetClimbUpPosition = new Vector3(torsoHit.point.x + -torsoHitNormalXZ.x * ClimbUpPositionFactor, hit.point.y, torsoHit.point.z + -torsoHitNormalXZ.z * ClimbUpPositionFactor);
+				_targetHangingRotation = Quaternion.LookRotation(-torsoHitNormalXZ, Motor.CharacterUp);
+				TransitionToState(PlayerMovementState.Hanging);
+			}
+			else if (_hangingFootCheck && _hangingKneeCheck && !_hangingTorsoCheck && !_hangingHeadCheck && kneeHit.normal.y <= 0.1f)
+			{
+				_startingClimbUpPosition = new Vector3(kneeHit.point.x, Motor.TransientPosition.y, kneeHit.point.z);
+				_targetClimbUpPosition = new Vector3(kneeHit.point.x + -kneeHitNormalXZ.x * ClimbUpPositionFactor, hit.point.y, kneeHit.point.z + -kneeHitNormalXZ.z * ClimbUpPositionFactor);
+				_targetHangingRotation = Quaternion.LookRotation(-kneeHitNormalXZ, Motor.CharacterUp);
+				_shouldVault = true;
+				TransitionToState(PlayerMovementState.ClimbingUp);
+			}
+			else if (_hangingFootCheck && !_hangingKneeCheck && !_hangingTorsoCheck && !_hangingHeadCheck && footHit.normal.y <= 0.1f)
+			{
+				_startingClimbUpPosition = new Vector3(footHit.point.x, Motor.TransientPosition.y, footHit.point.z);
+				_targetClimbUpPosition = new Vector3(footHit.point.x + -footHitNormalXZ.x * ClimbUpPositionFactor, hit.point.y, footHit.point.z + -footHitNormalXZ.z * ClimbUpPositionFactor);
+				_targetHangingRotation = Quaternion.LookRotation(-footHitNormalXZ, Motor.CharacterUp);
+				_shouldStepUp = true;
+				TransitionToState(PlayerMovementState.ClimbingUp);
+			}
+		}
+	}
+
 	private void SetCrouchingDimensions()
 	{
 		Motor.SetCapsuleDimensions(0.3f, 0.9f, 0.45f);
@@ -834,4 +837,10 @@ public class PlayerMovementController : BaseCharacterController
 		_rootMotionPositionDelta += playerAnimationManager.PlayerAnimator.deltaPosition;
 		_rootMotionRotationDelta = playerAnimationManager.PlayerAnimator.deltaRotation * _rootMotionRotationDelta;
 	}
+
+	//private void OnDrawGizmos()
+	//{
+	//	Gizmos.color = Color.red;
+	//	Gizmos.DrawWireSphere(_targetClimbUpPosition, 0.1f);
+	//}
 }
