@@ -105,7 +105,7 @@ namespace SensorToolkit
 
         bool checkForRaySensors()
         {
-            return PrefabUtility.GetCorrespondingObjectFromSource(steeringRig) == null || steeringRig.GetComponentsInChildren<RaySensor>().Length > 0;
+            return PrefabUtility.GetPrefabParent(steeringRig) == null || steeringRig.GetComponentsInChildren<RaySensor>().Length > 0;
         }
     }
 }
