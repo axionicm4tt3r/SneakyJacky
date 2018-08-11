@@ -8,9 +8,11 @@ public class SecurityCamera : MonoBehaviour
 	public float RotationSpeed;
 	public float ScanTime;
 	public float TrackTime;
+	public float SearchTime;
 	public float ScanArcAngle;
 	public Light SpotLight;
-	public Sensor Sensor;
+	public TriggerSensor FieldOfViewSensor;
+	public RangeSensor RangeSensor;
 	public Color ScanColour;
 	public Color TrackColour;
 	public Color AlarmColour;
@@ -74,20 +76,40 @@ public class SecurityCamera : MonoBehaviour
 	{
 		SpotLight.color = TrackColour;
 		var enemy = GetSpottedEnemy();
-		var timer = 0f;
-		while (Sensor.IsDetected(enemy))
+		var detectionTimer = 0f;
+		var searchTimer = 0f;
+		bool lostSightOfPlayer = false;
+
+		while (searchTimer < SearchTime)
 		{
-			targetRotation = Quaternion.LookRotation(transform.position - enemy.transform.position, Vector3.up);
-			timer += Time.deltaTime;
-			if (timer >= TrackTime)
+			if (RangeSensor.IsDetected(enemy) && !lostSightOfPlayer)
+				targetRotation = Quaternion.LookRotation(transform.position - enemy.transform.position, Vector3.up);
+			else
+				lostSightOfPlayer = true;
+
+			if (FieldOfViewSensor.IsDetected(enemy))
 			{
-				AlarmManager.Instance.StartAlarm(enemy);
+				searchTimer = 0;
+				detectionTimer += Time.deltaTime;
+				if (detectionTimer >= TrackTime)
+				{
+					AlarmManager.Instance.StartAlarm(enemy);
+					StopAllCoroutines();
+					StartCoroutine(AlarmState());
+					break;
+				}
+			}
+
+			searchTimer += Time.deltaTime;
+			if (searchTimer >= SearchTime)
+			{
 				StopAllCoroutines();
-				StartCoroutine(AlarmState());
+				StartCoroutine(ScanState());
 				break;
 			}
 			yield return null;
 		}
+
 		StopAllCoroutines();
 		StartCoroutine(ScanState());
 	}
@@ -101,7 +123,7 @@ public class SecurityCamera : MonoBehaviour
 
 	GameObject GetSpottedEnemy()
 	{
-		var entities = Sensor.GetDetectedByComponent<Player>();
+		var entities = FieldOfViewSensor.GetDetectedByComponent<Player>();
 		return entities.FirstOrDefault()?.gameObject;
 	}
 }
